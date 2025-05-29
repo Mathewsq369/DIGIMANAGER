@@ -1,9 +1,7 @@
 from django.db import models
-from django.contrib.auth.models import User
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 
-# Create your models here.
 class Platform(models.Model):
     name = models.CharField(max_length=50)
     access_token = models.TextField()
@@ -16,6 +14,7 @@ class Post(models.Model):
         ('draft', 'Draft'),
         ('scheduled', 'Scheduled'),
         ('published', 'Published'),
+        ('approved', 'Approved'),
     ]
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     platform = models.ForeignKey(Platform, on_delete=models.CASCADE)
@@ -23,6 +22,7 @@ class Post(models.Model):
     image = models.ImageField(upload_to='images/', null=True, blank=True)
     scheduled_time = models.DateTimeField()
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='draft')
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def str(self):
         return f"{self.user.username} - {self.platform.name} - {self.status}"
