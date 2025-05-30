@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Manager Dashboard</h2>
+<h3>Scheduled Posts (Pending Approval)</h3>
+<ul>
+  {% for post in scheduled_posts %}
+  <li>
+    <strong>{{ post.user.username }}</strong>: {{ post.content|truncatewords:20 }}<br>
+    Platform: {{ post.platform.name }} | Scheduled: {{ post.scheduled_time }}
+    <br><button>Approve</button> <button>Reject</button>
+  </li>
+  {% empty %}
+  <li>No posts pending approval.</li>
+  {% endfor %}
+</ul>
+{% endblock %}

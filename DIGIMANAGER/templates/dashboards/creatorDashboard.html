@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Creator Dashboard</h2>
+<a href="{% url 'create_post' %}">+ Create New Post</a>
+<h3>Your Posts</h3>
+<table>
+  <tr>
+    <th>Content</th><th>Platform</th><th>Status</th><th>Scheduled Time</th>
+  </tr>
+  {% for post in my_posts %}
+  <tr>
+    <td>{{ post.content|truncatewords:10 }}</td>
+    <td>{{ post.platform.name }}</td>
+    <td>{{ post.status }}</td>
+    <td>{{ post.scheduled_time }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% endblock %}

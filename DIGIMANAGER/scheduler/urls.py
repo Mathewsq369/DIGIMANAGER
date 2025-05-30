@@ -7,10 +7,10 @@ urlpatterns = [
     path('logout/', views.logout, name='logout'),
 
     #dashboards
-    path('admin/dashboard/', views.admDashboard, name='admin_dashboard'),
-    path('creator/dashboard/', views.creatorDashboard, name='creator_dashboard'),
-    path('manager/dashboard/', views.managerDashboard, name='manager_dashboard'),
-    path('dashboard/', views.genericDashboard, name='dashboard'),
+    path('dashboards/admDashboard', views.admDashboard, name='admin_dashboard'),
+    path('dashboards/creatorDashboard', views.creatorDashboard, name='creator_dashboard'),
+    path('dashboards/managerDashboard', views.managerDashboard, name='manager_dashboard'),
+    #path('dashboard/', views.genericDashboard, name='dashboard'),
 
     #########
     path('create/', views.createPost, name='create_post'),

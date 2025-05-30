@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from .forms import RegisterForm
 from django.contrib.auth import login as auth_login, authenticate, logout as auth_logout
@@ -10,6 +10,9 @@ from .models import Post
 from datetime import datetime
 from .tasks import publish_post
 import requests
+from django.contrib.auth import get_user_model
+from .models import Post, Platform
+from django.utils import timezone
 
 
 def home_redirect(request):
@@ -24,11 +27,11 @@ def register(request):
             messages.success(request, f"Account created for {user.username}!")
             # Optional: redirect by role
             if user.role == 'admin':
-                return redirect('admDashboard')
+                return redirect('dashboards/admDashboard')
             elif user.role == 'creator':
-                return redirect('creatorDashboard')
+                return redirect('dashboards/creatorDashboard')
             elif user.role == 'manager':
-                return redirect('managerDashboard')
+                return redirect('dashboards/managerDashboard')
     else:
         form = RegisterForm()
     return render(request, 'users/register.html', {'form': form})
@@ -43,35 +46,19 @@ def login(request):
 
             # Redirect based on user role
             if user.role == 'admin':
-                return redirect('admDashboard')
+                return redirect('dashboards/admDashboard')
             elif user.role == 'creator':
-                return redirect('creatorDashboard')
+                return redirect('dashboards/creatorDashboard')
             elif user.role == 'manager':
-                return redirect('managerDashboard')
+                return redirect('dashboards/managerDashboard')
     else:
         form = AuthenticationForm()
     return render(request, 'users/login.html', {'form': form})
 
 def logout(request):
     auth_logout(request)
-    messages.info(request, "You have successfully logged out.")
+    messages.info(request, "Log out successful.")
     return redirect('login')
-
-@login_required
-def admDashboard(request):
-    return HttpResponse("Admin Dashboard")
-
-@login_required
-def creatorDashboard(request):
-    return HttpResponse("Creator Dashboard")
-
-@login_required
-def managerDashboard(request):
-    return HttpResponse("Manager Dashboard")
-
-@login_required
-def genericDashboard(request):
-    return HttpResponse("Generic Dashboard")
 
 def generate_ai_content(prompt="Generate a social media caption."):
     API_URL = "https://api-inference.huggingface.co/models/gpt2"
@@ -137,3 +124,54 @@ def analyticsDashboard(request):
         'published': Post.objects.filter(status='published').count(),
     }
     return render(request, 'dashboard/analytics.html', {'data': data})
+
+
+############
+#DASHBOARDS#
+############
+
+User = get_user_model()
+
+# Admin Dashboard View
+@login_required
+def admDashboard(request):
+    if request.user.role != 'admin':
+        return redirect('unauthorized')
+    
+    users = User.objects.all()
+    posts = Post.objects.all()
+    
+    return render(request, 'dashboards/admDashboard.html', {
+        'users': users,
+        'posts': posts,
+    })
+
+# Manager Dashboard View
+@login_required
+def managerDashboard(request):
+    if request.user.role != 'manager':
+        return redirect('unauthorized')
+    
+    scheduled_posts = Post.objects.filter(status='scheduled', scheduled_time__lte=timezone.now())
+    
+    return render(request, 'dashboards/managerDashboard.html', {
+        'scheduled_posts': scheduled_posts,
+    })
+
+# Creator Dashboard View
+@login_required
+def creatorDashboard(request):
+    if request.user.role != 'creator':
+        return redirect('unauthorized')
+    
+    my_posts = Post.objects.filter(user=request.user)
+    platforms = Platform.objects.all()
+    
+    return render(request, 'dashboards/creatorDashboard.html', {
+        'my_posts': my_posts,
+        'platforms': platforms,
+    })
+
+# Unauthorized View
+def unauthorized(request):
+    return render(request, 'dashboards/unauthorized.html')
