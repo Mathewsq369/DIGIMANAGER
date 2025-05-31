@@ -6,17 +6,14 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from .forms import PostForm
-from .models import Post
+from .models import Post, Platform
 from datetime import datetime
-from .tasks import publish_post
+from .tasks import publishPost
 import requests
 from django.contrib.auth import get_user_model
-from .models import Post, Platform
 from django.utils import timezone
+from django.db.models import Count
 
-
-def home_redirect(request):
-    return redirect('register')
 
 def register(request):
     if request.method == 'POST':
@@ -90,7 +87,7 @@ def createPost(request):
                 from django.utils import timezone
                 from datetime import timedelta
                 eta = (post.scheduled_time - timezone.now()).total_seconds()
-                publish_post.apply_async((post.id,), countdown=eta)
+                publishPost.apply_async((post.id,), countdown=eta)
             return redirect('creatorDashboard')
     else:
         form = PostForm()
@@ -111,24 +108,46 @@ def approvePostAction(request, post_id):
     post.save()
     return redirect('approvePosts')
 
+############
+#DASHBOARDS#
+############
 
 @login_required
 def analyticsDashboard(request):
     if request.user.role not in ['admin', 'manager']:
         return redirect('unauthorized')
 
-    data = {
-        'draft': Post.objects.filter(status='draft').count(),
-        'scheduled': Post.objects.filter(status='scheduled').count(),
-        'approved': Post.objects.filter(status='approved').count(),
-        'published': Post.objects.filter(status='published').count(),
-    }
-    return render(request, 'dashboard/analytics.html', {'data': data})
+    # Current status breakdown for pie/bar chart
+    status_counts = Post.objects.values('status').annotate(count=Count('status'))
+    status_data = {item['status']: item['count'] for item in status_counts}
 
+    # Example monthly post count over last 6 months for trend analysis
+    from django.utils.timezone import now
+    import calendar
+    from datetime import timedelta
 
-############
-#DASHBOARDS#
-############
+    months = []
+    post_counts = []
+
+    for i in range(5, -1, -1):  # Last 6 months
+        month = (now() - timedelta(days=30 * i)).month
+        year = (now() - timedelta(days=30 * i)).year
+        month_name = calendar.month_name[month]
+
+        count = Post.objects.filter(
+            created_at__month=month,
+            created_at__year=year
+        ).count()
+
+        months.append(month_name)
+        post_counts.append(count)
+
+    return render(request, 'dashboards/analytics.html', {
+        'status_labels': list(status_data.keys()),
+        'status_values': list(status_data.values()),
+        'month_labels': months,
+        'month_data': post_counts
+    })
 
 User = get_user_model()
 
@@ -175,3 +194,81 @@ def creatorDashboard(request):
 # Unauthorized View
 def unauthorized(request):
     return render(request, 'dashboards/unauthorized.html')
+
+
+
+####################
+
+@login_required
+def createPost(request):
+    if request.user.role != 'creator':
+        return redirect('unauthorized')
+
+    if request.method == 'POST':
+        form = PostForm(request.POST, request.FILES)
+        if form.is_valid():
+            post = form.save(commit=False)
+            post.user = request.user
+            post.status = 'draft'
+            post.save()
+            return redirect('myPosts')
+    else:
+        form = PostForm()
+
+    return render(request, 'posts/createPost.html', {'form': form})
+
+
+@login_required
+def myPosts(request):
+    posts = Post.objects.filter(user=request.user)
+    return render(request, 'posts/myPosts.html', {'posts': posts})
+
+
+@login_required
+def viewPost(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
+    if request.user != post.user and request.user.role not in ['admin', 'manager']:
+        return redirect('unauthorized')
+    return render(request, 'posts/postList.html', {'post': post})
+
+
+@login_required
+def editPost(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
+    if request.user != post.user:
+        return redirect('unauthorized')
+
+    if request.method == 'POST':
+        form = PostForm(request.POST, request.FILES, instance=post)
+        if form.is_valid():
+            form.save()
+            return redirect('myPosts')
+    else:
+        form = PostForm(instance=post)
+
+    return render(request, 'posts/createPost.html', {'form': form})
+
+
+@login_required
+def deletePost(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
+    if request.user == post.user:
+        post.delete()
+    return redirect('myPosts')
+
+
+@login_required
+def approvePosts(request):
+    if request.user.role not in ['admin', 'manager']:
+        return redirect('unauthorized')
+
+    pending_posts = Post.objects.filter(status='scheduled')
+    return render(request, 'posts/approvePosts.html', {'pending_posts': pending_posts})
+
+
+@login_required
+def rejectPostAction(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
+    post.status = 'rejected'
+    post.save()
+    return redirect('approvePosts')

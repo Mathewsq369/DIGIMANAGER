@@ -18,3 +18,30 @@ urlpatterns = [
     path('approve/<int:post_id>/', views.approvePostAction, name='approve_post'),
     path('analytics/', views.analyticsDashboard, name='analytics_dashboard'),
 ]
+
+
+##############################
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('admin/dashboard/', views.admDashboard, name='admDashboard'),
+    path('manager/dashboard/', views.managerDashboard, name='managerDashboard'),
+    path('creator/dashboard/', views.creatorDashboard, name='creatorDashboard'),
+    path('unauthorized/', views.unauthorized, name='unauthorized'),
+
+    # Content Management
+    path('create/', views.createPost, name='createPost'),
+    path('my-posts/', views.myPosts, name='myPosts'),
+    path('post/<int:post_id>/', views.viewPost, name='view_post'),
+    path('post/<int:post_id>/edit/', views.editPost, name='edit_post'),
+    path('post/<int:post_id>/delete/', views.deletePost, name='delete_post'),
+
+    # Approvals
+    path('approve-posts/', views.approvePosts, name='approvePosts'),
+    path('approve-post/<int:post_id>/', views.approvePostAction, name='approve_post'),
+    path('reject-post/<int:post_id>/', views.rejectPostAction, name='reject_post'),
+
+    # Analytics
+    path('analytics/', views.analyticsDashboard, name='analyticsDashboard'),
+]

@@ -1,19 +1,30 @@
 {% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
 {% block content %}
-<h2>Creator Dashboard</h2>
-<a href="{% url 'create_post' %}">+ Create New Post</a>
-<h3>Your Posts</h3>
-<table>
-  <tr>
-    <th>Content</th><th>Platform</th><th>Status</th><th>Scheduled Time</th>
-  </tr>
-  {% for post in my_posts %}
-  <tr>
-    <td>{{ post.content|truncatewords:10 }}</td>
-    <td>{{ post.platform.name }}</td>
-    <td>{{ post.status }}</td>
-    <td>{{ post.scheduled_time }}</td>
-  </tr>
-  {% endfor %}
-</table>
+<div class="container mt-5">
+  <h2 class="mb-4">Content Creator Dashboard</h2>
+
+  <div class="row">
+    <div class="col-md-6">
+      <div class="card border-secondary mb-3">
+        <div class="card-header bg-secondary text-white">Create New Post</div>
+        <div class="card-body">
+          <p>Generate captions and schedule your social media content with AI assistance.</p>
+          <a href="{% url 'create_post' %}" class="btn btn-secondary btn-sm">Create Post</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card border-warning mb-3">
+        <div class="card-header bg-warning text-dark">My Posts</div>
+        <div class="card-body">
+          <p>View, edit or delete your drafts and scheduled posts.</p>
+          <a href="{% url 'my_posts' %}" class="btn btn-warning btn-sm">Manage Posts</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}

@@ -1,16 +1,30 @@
 {% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
 {% block content %}
-<h2>Manager Dashboard</h2>
-<h3>Scheduled Posts (Pending Approval)</h3>
-<ul>
-  {% for post in scheduled_posts %}
-  <li>
-    <strong>{{ post.user.username }}</strong>: {{ post.content|truncatewords:20 }}<br>
-    Platform: {{ post.platform.name }} | Scheduled: {{ post.scheduled_time }}
-    <br><button>Approve</button> <button>Reject</button>
-  </li>
-  {% empty %}
-  <li>No posts pending approval.</li>
-  {% endfor %}
-</ul>
+<div class="container mt-5">
+  <h2 class="mb-4">Manager Dashboard</h2>
+
+  <div class="row">
+    <div class="col-md-6">
+      <div class="card border-danger mb-3">
+        <div class="card-header bg-danger text-white">Approve Posts</div>
+        <div class="card-body">
+          <p>Review and approve draft content from creators before it goes live.</p>
+          <a href="{% url 'approve_posts' %}" class="btn btn-danger btn-sm">Review Drafts</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card border-success mb-3">
+        <div class="card-header bg-success text-white">Analytics</div>
+        <div class="card-body">
+          <p>Track engagement and content performance across platforms.</p>
+          <a href="{% url 'analytics' %}" class="btn btn-success btn-sm">View Analytics</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}
