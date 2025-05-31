@@ -15,6 +15,7 @@ from django.utils import timezone
 from django.db.models import Count
 
 
+
 def register(request):
     if request.method == 'POST':
         form = RegisterForm(request.POST)
@@ -187,7 +188,7 @@ def creatorDashboard(request):
     platforms = Platform.objects.all()
     
     return render(request, 'dashboards/creatorDashboard.html', {
-        'my_posts': my_posts,
+        'my_posts': myPosts,
         'platforms': platforms,
     })
 
@@ -221,7 +222,7 @@ def createPost(request):
 @login_required
 def myPosts(request):
     posts = Post.objects.filter(user=request.user)
-    return render(request, 'posts/myPosts.html', {'posts': posts})
+    return render(request, 'posts/postList.html', {'posts': posts})
 
 
 @login_required
@@ -229,7 +230,7 @@ def viewPost(request, post_id):
     post = get_object_or_404(Post, id=post_id)
     if request.user != post.user and request.user.role not in ['admin', 'manager']:
         return redirect('unauthorized')
-    return render(request, 'posts/postList.html', {'post': post})
+    return render(request, 'posts/postDetail.html', {'post': post})
 
 
 @login_required
