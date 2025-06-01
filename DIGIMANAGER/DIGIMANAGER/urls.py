@@ -16,8 +16,18 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.contrib.auth import views as auth_views
+from django.contrib.auth import logout
+from django.shortcuts import redirect
+from django.urls import reverse
+
+def custom_admin_logout(request):
+    logout(request)  # Logs the user out
+    return redirect(reverse('login'))
+
 
 urlpatterns = [
+    path('admin/logout/', custom_admin_logout, name='admin_logout'),
     path('admin/', admin.site.urls),
     path('', include('scheduler.urls')),
 ]

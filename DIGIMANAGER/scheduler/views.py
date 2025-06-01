@@ -15,7 +15,6 @@ from django.utils import timezone
 from django.db.models import Count
 
 
-
 def register(request):
     if request.method == 'POST':
         form = RegisterForm(request.POST)
