@@ -3,11 +3,20 @@ from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 
 class Platform(models.Model):
-    name = models.CharField(max_length=50)
+    PLATFORM_CHOICES = [
+        ('facebook', 'Facebook'),
+        ('instagram', 'Instagram'),
+        ('twitter', 'Twitter (X)'),
+        ('linkedin', 'LinkedIn'),
+    ]
+
+    name = models.CharField(max_length=50, choices=PLATFORM_CHOICES)
     access_token = models.TextField()
+    added_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.name
+        return f"{self.name.title()} - {self.added_by.username}"
 
 class Post(models.Model):
     STATUS_CHOICES = [

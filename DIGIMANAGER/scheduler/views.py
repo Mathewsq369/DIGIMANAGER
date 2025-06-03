@@ -13,7 +13,7 @@ import requests
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from django.db.models import Count
-
+from .forms import PlatformForm
 
 def register(request):
     if request.method == 'POST':
@@ -195,10 +195,6 @@ def creatorDashboard(request):
 def unauthorized(request):
     return render(request, 'dashboards/unauthorized.html')
 
-
-
-####################
-
 @login_required
 def createPost(request):
     if request.user.role != 'creator':
@@ -272,3 +268,53 @@ def rejectPostAction(request, post_id):
     post.status = 'rejected'
     post.save()
     return redirect('approvePosts')
+
+@login_required
+def managePlatforms(request):
+    if not hasattr(request.user, 'role') or request.user.role not in ['admin', 'manager']:
+        return redirect('unauthorized')
+
+    platforms = Platform.objects.filter(added_by=request.user).order_by('-created_at')
+    form = PlatformForm(request.POST or None)
+
+    if request.method == 'POST' and form.is_valid():
+        platform = form.save(commit=False)
+        platform.added_by = request.user
+        platform.save()
+        messages.success(request, f"{platform.name.title()} added successfully.")
+        return redirect('managePlatforms')
+
+    return render(request, 'platforms/managePlatforms.html', {
+        'form': form,
+        'platforms': platforms,
+    })
+
+@login_required
+def editPlatform(request, pk):
+    platform = get_object_or_404(Platform, pk=pk, added_by=request.user)
+
+    if request.user.role not in ['admin', 'manager']:
+        return redirect('unauthorized')
+
+    form = PlatformForm(request.POST or None, instance=platform)
+
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        messages.success(request, "Platform updated successfully.")
+        return redirect('managePlatforms')
+
+    return render(request, 'platforms/editPlatform.html', {'form': form, 'platform': platform})
+
+@login_required
+def deletePlatform(request, pk):
+    platform = get_object_or_404(Platform, pk=pk, added_by=request.user)
+
+    if request.user.role not in ['admin', 'manager']:
+        return redirect('unauthorized')
+
+    if request.method == 'POST':
+        platform.delete()
+        messages.success(request, "Platform deleted successfully.")
+        return redirect('managePlatforms')
+
+    return render(request, 'platforms/deletePlatform.html', {'platform': platform})

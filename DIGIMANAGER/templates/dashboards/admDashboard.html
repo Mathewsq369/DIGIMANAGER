@@ -1,11 +1,10 @@
 {% extends 'base.html' %}
-{% load crispy_forms_tags %}
-
+{% load static %}
 {% block content %}
 <div class="container mt-5">
   <h2 class="mb-4">Admin Dashboard</h2>
-  
   <div class="row">
+    <!-- Manage Users -->
     <div class="col-md-4">
       <div class="card border-primary mb-3">
         <div class="card-header bg-primary text-white">Manage Users</div>
@@ -15,24 +14,25 @@
         </div>
       </div>
     </div>
-    
+
+    <!-- Analytics -->
     <div class="col-md-4">
       <div class="card border-success mb-3">
         <div class="card-header bg-success text-white">View Analytics</div>
         <div class="card-body">
-          <p>View overall content performance, engagement metrics and platform stats.</p>
+          <p>View content performance, engagement metrics, and platform statistics.</p>
           <a href="{% url 'analyticsDashboard' %}" class="btn btn-success btn-sm">View Analytics</a>
         </div>
       </div>
     </div>
-    
+
+    <!-- Platform Settings -->
     <div class="col-md-4">
       <div class="card border-info mb-3">
         <div class="card-header bg-info text-white">Platform Settings</div>
         <div class="card-body">
-          <p>Configure platforms and schedule automation parameters.</p>
-          <!-- Link to future settings -->
-          <a href="#" class="btn btn-info btn-sm disabled">Coming Soon</a>
+          <p>Configure platforms and schedule automation.</p>
+          <a href="{% url 'managePlatforms' %}" class="btn btn-info btn-sm">Manage Platforms</a>
         </div>
       </div>
     </div>

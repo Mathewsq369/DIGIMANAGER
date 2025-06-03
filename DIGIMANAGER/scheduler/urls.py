@@ -27,4 +27,10 @@ urlpatterns = [
 
     # Analytics
     path('analytics/', views.analyticsDashboard, name='analyticsDashboard'),
+
+    #platforms
+    path('platforms/', views.managePlatforms, name='managePlatforms'),
+    path('manage-platforms/', views.managePlatforms, name='managePlatforms'),
+    path('platform/edit/<int:pk>/', views.editPlatform, name='editPlatform'),
+    path('platform/delete/<int:pk>/', views.deletePlatform, name='deletePlatform'),
 ]

@@ -4,6 +4,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserCreationForm
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
+from .models import Platform
 
 # Registration Form
 class RegisterForm(UserCreationForm):
@@ -31,3 +32,11 @@ class PostForm(forms.ModelForm):
         self.helper = FormHelper()
         self.helper.form_method = 'post'
         self.helper.add_input(Submit('submit', 'Save Post'))
+
+class PlatformForm(forms.ModelForm):
+    class Meta:
+        model = Platform
+        fields = ['name', 'access_token']
+        widgets = {
+            'access_token': forms.Textarea(attrs={'rows': 3}),
+        }
