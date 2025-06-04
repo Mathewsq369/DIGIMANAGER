@@ -11,7 +11,7 @@ class Platform(models.Model):
     ]
     name = models.CharField(max_length=50, choices=PLATFORM_CHOICES)
     access_token = models.TextField()
-    refresh_token = models.TextField(blank=True, null=True)
+    #refresh_token = models.TextField(blank=True, null=True)
     expires_in = models.IntegerField(blank=True, null=True)
     added_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)

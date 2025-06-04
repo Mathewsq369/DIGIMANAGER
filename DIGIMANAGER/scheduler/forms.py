@@ -36,7 +36,7 @@ class PostForm(forms.ModelForm):
 class PlatformForm(forms.ModelForm):
     class Meta:
         model = Platform
-        fields = ['name', 'access_token']
+        fields = ['name', 'access_token','expires_in']
         widgets = {
             'access_token': forms.Textarea(attrs={'rows': 3}),
         }
