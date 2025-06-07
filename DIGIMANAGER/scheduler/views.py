@@ -22,13 +22,7 @@ def register(request):
             user = form.save()
             auth_login(request, user)
             messages.success(request, f"Account created for {user.username}!")
-            # Optional: redirect by role
-            if user.role == 'admin':
-                return redirect('dashboards/admDashboard')
-            elif user.role == 'creator':
-                return redirect('dashboards/creatorDashboard')
-            elif user.role == 'manager':
-                return redirect('dashboards/managerDashboard')
+            return redirect('login')
     else:
         form = RegisterForm()
     return render(request, 'users/register.html', {'form': form})

@@ -22,10 +22,10 @@
         <td>{{ post.scheduled_time|date:"M d, Y H:i" }}</td>
         <td>{{ post.platform.name }}</td>
         <td>
-          <a href="{% url 'view_post' post.id %}" class="btn btn-sm btn-info">View</a>
+          <a href="{% url 'viewPost' post.id %}" class="btn btn-sm btn-info">View</a>
           {% if post.status == "Draft" %}
-          <a href="{% url 'edit_post' post.id %}" class="btn btn-sm btn-warning">Edit</a>
-          <a href="{% url 'delete_post' post.id %}" class="btn btn-sm btn-danger">Delete</a>
+          <a href="{% url 'editPost' post.id %}" class="btn btn-sm btn-warning">Edit</a>
+          <a href="{% url 'deletePost' post.id %}" class="btn btn-sm btn-danger">Delete</a>
           {% endif %}
         </td>
       </tr>
