@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'scheduler',
     'crispy_forms',
     'crispy_bootstrap4',
+    'contentgen',
 ]
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
@@ -135,11 +136,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'scheduler.CustomUser'
 
 # Messages
-MESSAGE_TAGS = {
+#MESSAGE_TAGS = {
     #messages.DEBUG: 'debug',
-    messages.DEBUG: 'secondary',
-    messages.INFO: 'info',
-    messages.SUCCESS: 'success',
-    messages.WARNING: 'warning',
-    messages.ERROR: 'danger',
-}
+ #   messages.DEBUG: 'secondary',
+  #  messages.INFO: 'info',
+   # messages.SUCCESS: 'success',
+    #messages.WARNING: 'warning',
+    #messages.ERROR: 'danger',
+#}
