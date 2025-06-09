@@ -45,3 +45,19 @@ class CustomUser(AbstractUser):
         ('manager', 'Manager'),
     ]
     role = models.CharField(max_length=10, choices=ROLE_CHOICES)
+
+class ContentPrompt(models.Model):
+    prompt = models.TextField()
+    generated_caption = models.TextField()
+    tone = models.CharField(max_length=50, choices=[
+        ('formal', 'Formal'),
+        ('humorous', 'Humorous'),
+        ('promotional', 'Promotional'),
+        ('informative', 'Informative'),
+    ])
+    platform = models.ForeignKey(Platform, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.prompt[:50]}..."

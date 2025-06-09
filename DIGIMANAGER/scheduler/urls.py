@@ -33,4 +33,8 @@ urlpatterns = [
     path('manage-platforms/', views.managePlatforms, name='managePlatforms'),
     path('platform/edit/<int:pk>/', views.editPlatform, name='editPlatform'),
     path('platform/delete/<int:pk>/', views.deletePlatform, name='deletePlatform'),
+    
+    #Captions
+    path('generate/', views.generateCaption, name='generateCaption'),
+    path('captions/history/', views.captionHistory, name='captionHistory'),
 ]

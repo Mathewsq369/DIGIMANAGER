@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserCreationForm
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
-from .models import Platform
+from .models import ContentPrompt, Platform
 
 # Registration Form
 class RegisterForm(UserCreationForm):
@@ -40,4 +40,13 @@ class PlatformForm(forms.ModelForm):
         widgets = {
             'access_token': forms.Textarea(attrs={'rows': 3}),
             'refresh_token': forms.Textarea(attrs={'rows': 3}),
+        }
+
+class ContentPromptForm(forms.ModelForm):
+    class Meta:
+        model = ContentPrompt
+        fields = ['prompt', 'platform', 'tone']
+        widgets = {
+            'prompt': forms.Textarea(attrs={'rows': 4}),
+            'tone': forms.Select(attrs={'class': 'form-select'}),
         }

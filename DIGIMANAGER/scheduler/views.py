@@ -6,14 +6,14 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from .forms import PostForm
-from .models import Post, Platform
+from .models import ContentPrompt, Post, Platform
 from datetime import datetime
 from .tasks import publishPost
 import requests
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from django.db.models import Count
-from .forms import PlatformForm
+from .forms import ContentPromptForm, PlatformForm
 
 def register(request):
     if request.method == 'POST':
@@ -51,15 +51,32 @@ def logout(request):
     messages.info(request, "Log out successful.")
     return redirect('login')
 
-def generate_ai_content(prompt="Generate a social media caption."):
-    API_URL = "https://api-inference.huggingface.co/models/gpt2"
-    headers = {"Authorization": "Bearer YOUR_HUGGINGFACE_TOKEN"} #comechange this
-    payload = {"inputs": prompt}
-    try:
-        response = requests.post(API_URL, headers=headers, json=payload)
-        return response.json()[0]['generated_text']
-    except Exception:
-        return "Could not generate AI content."
+@login_required
+def generateCaption(request):
+    caption = None
+    if request.method == 'POST':
+        form = ContentPromptForm(request.POST)
+        if form.is_valid():
+            obj = form.save(commit=False)
+            obj.user = request.user
+
+            # Dummy AI-generated caption
+            prompt_text = form.cleaned_data['prompt']
+            tone = form.cleaned_data['tone']
+            obj.generated_caption = f"[{tone.title()} Tone Caption] Generated for: {prompt_text}"
+            
+            obj.save()
+            caption = obj
+    else:
+        form = ContentPromptForm()
+    return render(request, 'scheduler/generateCaption.html', {'form': form, 'caption': caption})
+
+
+@login_required
+def caption_history(request):
+    captions = ContentPrompt.objects.filter(user=request.user).order_by('-timestamp')
+    return render(request, 'scheduler/captionHistory.html', {'captions': captions})
+
 
 @login_required
 def createPost(request):
@@ -312,3 +329,4 @@ def deletePlatform(request, pk):
         return redirect('managePlatforms')
 
     return render(request, 'platforms/deletePlatform.html', {'platform': platform})
+
