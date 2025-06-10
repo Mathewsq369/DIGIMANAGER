@@ -61,15 +61,11 @@ def generateCaption(request):
         if form.is_valid():
             obj = form.save(commit=False)
             obj.user = request.user
-
-            # AI-powered caption
-            prompt_text = form.cleaned_data['prompt']
-            tone = form.cleaned_data['tone']
-            generated = generateCaptionAi(prompt_text, tone)
-            obj.generated_caption = generated
-
+            obj.generated_caption = generateCaptionAi(obj.prompt, obj.tone)
+            obj.status = 'draft'
             obj.save()
             caption = obj
+            messages.success(request, "Caption generated and saved as draft.")
     else:
         form = ContentPromptForm()
     return render(request, 'scheduler/generateCaption.html', {'form': form, 'caption': caption})
@@ -332,3 +328,7 @@ def deletePlatform(request, pk):
 
     return render(request, 'platforms/deletePlatform.html', {'platform': platform})
 
+@login_required
+def draftsView(request):
+    drafts = Content.objects.filter(user=request.user, status='draft').order_by('-created_at')
+    return render(request, 'scheduler/drafts.html', {'drafts': drafts})

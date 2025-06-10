@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>📂 Your Draft Captions</h2>
+<ul class="list-group">
+  {% for d in drafts %}
+    <li class="list-group-item">
+      <strong>{{ d.created_at|date:"M d, Y H:i" }}</strong><br>
+      {{ d.generated_caption|truncatewords:20 }}
+      <br>
+      <a href="#">Edit</a> | <a href="#">Publish</a>
+    </li>
+  {% empty %}
+    <li class="list-group-item">No drafts yet.</li>
+  {% endfor %}
+</ul>
+{% endblock %}

@@ -61,3 +61,13 @@ class ContentPrompt(models.Model):
 
     def __str__(self):
         return f"{self.prompt[:50]}..."
+
+
+class Content(models.Model):
+    ...
+    STATUS_CHOICES = [
+        ('draft', 'Draft'),
+        ('published', 'Published'),
+    ]
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='draft')
+    created_at = models.DateTimeField(auto_now_add=True)
