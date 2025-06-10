@@ -55,8 +55,8 @@ class ContentPrompt(models.Model):
         ('promotional', 'Promotional'),
         ('informative', 'Informative'),
     ])
-    platform = models.ForeignKey(Platform, on_delete=models.CASCADE)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    platform = models.ForeignKey(Platform, on_delete=models.CASCADE,related_name='contentprompts_scheduler')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,related_name='contentprompts_scheduler')
     timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

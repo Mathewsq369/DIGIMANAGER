@@ -5,8 +5,8 @@ from scheduler.models import Platform
 User = get_user_model()
 
 class ContentPrompt(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    platform = models.ForeignKey(Platform, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE,related_name='contentprompts_contentgen')
+    platform = models.ForeignKey(Platform, on_delete=models.CASCADE,related_name='contentprompts_contentgen')
     prompt = models.TextField()
     tone = models.CharField(max_length=50, choices=[
         ('formal', 'Formal'),

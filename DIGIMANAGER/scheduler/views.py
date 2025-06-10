@@ -73,7 +73,7 @@ def generateCaption(request):
 
 
 @login_required
-def caption_history(request):
+def captionHistory(request):
     captions = ContentPrompt.objects.filter(user=request.user).order_by('-timestamp')
     return render(request, 'scheduler/captionHistory.html', {'captions': captions})
 
