@@ -1,40 +1,45 @@
 {% extends 'base.html' %}
-
 {% block content %}
 <div class="container mt-5">
-  <h2 class="mb-3">My Posts</h2>
-
-  <table class="table table-striped">
-    <thead>
-      <tr>
-        <th>Caption</th>
-        <th>Status</th>
-        <th>Scheduled Time</th>
-        <th>Platform</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for post in posts %}
-      <tr>
-        <td>{{ post.caption|truncatewords:10 }}</td>
-        <td>{{ post.status }}</td>
-        <td>{{ post.scheduled_time|date:"M d, Y H:i" }}</td>
-        <td>{{ post.platform.name }}</td>
-        <td>
-          <a href="{% url 'viewPost' post.id %}" class="btn btn-sm btn-info">View</a>
-          {% if post.status == "Draft" %}
-          <a href="{% url 'editPost' post.id %}" class="btn btn-sm btn-warning">Edit</a>
-          <a href="{% url 'deletePost' post.id %}" class="btn btn-sm btn-danger">Delete</a>
-          {% endif %}
-        </td>
-      </tr>
-      {% empty %}
-      <tr>
-        <td colspan="5" class="text-center">No posts found.</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  <h2 class="mb-4">Manage My Posts</h2>
+  
+  {% if posts %}
+  <div class="card border-primary">
+    <div class="card-header bg-primary text-white">All My Posts</div>
+    <div class="card-body p-0">
+      <table class="table table-striped mb-0">
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Status</th>
+            <th>Scheduled Time</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for post in posts %}
+          <tr>
+            <td>{{ post.title }}</td>
+            <td>{{ post.status }}</td>
+            <td>{{ post.scheduled_time|default:"—" }}</td>
+            <td>
+              <a href="{% url 'viewPost' post.id %}" class="btn btn-sm btn-outline-primary">View</a>
+              {% if post.user == user %}
+              <a href="{% url 'editPost' post.id %}" class="btn btn-sm btn-outline-secondary">Edit</a>
+              <form method="POST" action="{% url 'deletePost' post.id %}" class="d-inline">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this post?');">Delete</button>
+              </form>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% else %}
+  <p>You haven't created any posts yet.</p>
+  {% endif %}
 </div>
 {% endblock %}

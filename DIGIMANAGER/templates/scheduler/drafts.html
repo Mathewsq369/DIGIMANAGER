@@ -1,16 +1,28 @@
 {% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
 {% block content %}
-<h2>📂 Your Draft Captions</h2>
-<ul class="list-group">
-  {% for d in drafts %}
-    <li class="list-group-item">
-      <strong>{{ d.created_at|date:"M d, Y H:i" }}</strong><br>
-      {{ d.generated_caption|truncatewords:20 }}
-      <br>
-      <a href="#">Edit</a> | <a href="#">Publish</a>
-    </li>
-  {% empty %}
-    <li class="list-group-item">No drafts yet.</li>
-  {% endfor %}
-</ul>
+<div class="container mt-5">
+  <h2 class="mb-4">📝 My Drafts</h2>
+
+  {% if drafts %}
+    <div class="row">
+      {% for draft in drafts %}
+        <div class="col-md-6 mb-4">
+          <div class="card shadow-sm border-left-warning">
+            <div class="card-body">
+              <h5 class="card-title">Draft for {{ draft.platform.name }}</h5>
+              <p class="card-text"><strong>Caption:</strong> {{ draft.caption|truncatechars:100 }}</p>
+              <p class="card-text text-muted"><small>Created at: {{ draft.created_at|date:"M d, Y H:i" }}</small></p>
+              <a href="{% url 'editPost' draft.id %}" class="btn btn-sm btn-outline-primary">✏️ Edit</a>
+              <a href="{% url 'deletePost' draft.id %}" class="btn btn-sm btn-outline-danger">🗑️ Delete</a>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="alert alert-info">You have no saved drafts.</div>
+  {% endif %}
+</div>
 {% endblock %}

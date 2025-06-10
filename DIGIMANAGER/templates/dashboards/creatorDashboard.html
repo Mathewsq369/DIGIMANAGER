@@ -4,8 +4,9 @@
 {% block content %}
 <div class="container mt-5">
   <h2 class="mb-4">Content Creator Dashboard</h2>
-
+  
   <div class="row">
+    <!-- Create New Post -->
     <div class="col-md-6">
       <div class="card border-secondary mb-3">
         <div class="card-header bg-secondary text-white">Create New Post</div>
@@ -16,12 +17,55 @@
       </div>
     </div>
 
+    <!-- My Posts -->
     <div class="col-md-6">
       <div class="card border-warning mb-3">
         <div class="card-header bg-warning text-dark">My Posts</div>
         <div class="card-body">
           <p>View, edit or delete your drafts and scheduled posts.</p>
           <a href="{% url 'myPosts' %}" class="btn btn-warning btn-sm">Manage Posts</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Display Recent 3 Posts Table -->
+  <div class="row mt-4">
+    <div class="col-md-12">
+      <div class="card border-info">
+        <div class="card-header bg-info text-white">Your Recent Posts</div>
+        <div class="card-body p-0">
+          {% if my_posts %}
+          <table class="table table-striped mb-0">
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Status</th>
+                <th>Scheduled Time</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for post in my_posts|slice:":3" %}
+              <tr>
+                <td>{{ post.title }}</td>
+                <td>{{ post.status }}</td>
+                <td>{{ post.scheduled_time|default:"—" }}</td>
+                <td>
+                  <a href="{% url 'viewPost' post.id %}" class="btn btn-sm btn-outline-primary">View</a>
+                  <a href="{% url 'editPost' post.id %}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                  <form method="POST" action="{% url 'deletePost' post.id %}" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this post?');">Delete</button>
+                  </form>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          {% else %}
+          <p class="p-3">You haven’t created any posts yet.</p>
+          {% endif %}
         </div>
       </div>
     </div>

@@ -37,5 +37,5 @@ urlpatterns = [
     #Captions
     path('generate/', views.generateCaption, name='generateCaption'),
     path('captions/history/', views.captionHistory, name='captionHistory'),
-    path('drafts/', views.draftsView, name='drafts'),
+    path('drafts/', views.drafts, name='drafts'),
 ]

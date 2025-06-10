@@ -6,7 +6,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from .forms import PostForm
-from .models import ContentPrompt, Post, Platform
+from .models import Content, ContentPrompt, Post, Platform
 from datetime import datetime
 from .tasks import publishPost
 import requests
@@ -196,7 +196,7 @@ def creatorDashboard(request):
     platforms = Platform.objects.all()
     
     return render(request, 'dashboards/creatorDashboard.html', {
-        'my_posts': myPosts,
+        'my_posts': my_posts,
         'platforms': platforms,
     })
 
@@ -214,18 +214,24 @@ def createPost(request):
         if form.is_valid():
             post = form.save(commit=False)
             post.user = request.user
-            post.status = 'draft'
+            # Set post status from form or default to draft
+            post.status = request.POST.get('status', 'draft')
             post.save()
-            return redirect('myPosts')
+
+            # Handle scheduled post
+            if post.status == 'scheduled' and post.scheduled_time:
+                eta = (post.scheduled_time - timezone.now()).total_seconds()
+                publishPost.apply_async((post.id,), countdown=eta)
+
+            messages.success(request, "Post saved successfully.")
+            return redirect('creatorDashboard')
     else:
         form = PostForm()
-
     return render(request, 'posts/createPost.html', {'form': form})
-
 
 @login_required
 def myPosts(request):
-    posts = Post.objects.filter(user=request.user)
+    posts = Post.objects.filter(user=request.user)  # Filter by current user
     return render(request, 'posts/postList.html', {'posts': posts})
 
 
@@ -329,6 +335,6 @@ def deletePlatform(request, pk):
     return render(request, 'platforms/deletePlatform.html', {'platform': platform})
 
 @login_required
-def draftsView(request):
-    drafts = Content.objects.filter(user=request.user, status='draft').order_by('-created_at')
-    return render(request, 'scheduler/drafts.html', {'drafts': drafts})
+def drafts(request):
+    user_drafts = Post.objects.filter(user=request.user, status='draft').order_by('-created_at')
+    return render(request, 'scheduler/drafts.html', {'drafts': user_drafts})

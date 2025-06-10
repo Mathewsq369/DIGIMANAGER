@@ -69,5 +69,6 @@ class Content(models.Model):
         ('draft', 'Draft'),
         ('published', 'Published'),
     ]
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='draft')
     created_at = models.DateTimeField(auto_now_add=True)
