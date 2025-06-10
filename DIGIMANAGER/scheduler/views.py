@@ -14,6 +14,7 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone
 from django.db.models import Count
 from .forms import ContentPromptForm, PlatformForm
+from .aiUtils import generateCaptionAi
 
 def register(request):
     if request.method == 'POST':
@@ -51,6 +52,7 @@ def logout(request):
     messages.info(request, "Log out successful.")
     return redirect('login')
 
+
 @login_required
 def generateCaption(request):
     caption = None
@@ -60,17 +62,17 @@ def generateCaption(request):
             obj = form.save(commit=False)
             obj.user = request.user
 
-            # Dummy AI-generated caption
+            # AI-powered caption
             prompt_text = form.cleaned_data['prompt']
             tone = form.cleaned_data['tone']
-            obj.generated_caption = f"[{tone.title()} Tone Caption] Generated for: {prompt_text}"
-            
+            generated = generateCaptionAi(prompt_text, tone)
+            obj.generated_caption = generated
+
             obj.save()
             caption = obj
     else:
         form = ContentPromptForm()
     return render(request, 'scheduler/generateCaption.html', {'form': form, 'caption': caption})
-
 
 @login_required
 def captionHistory(request):
