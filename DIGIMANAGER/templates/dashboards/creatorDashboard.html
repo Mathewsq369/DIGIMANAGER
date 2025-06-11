@@ -1,10 +1,9 @@
 {% extends 'base.html' %}
 {% load crispy_forms_tags %}
-
 {% block content %}
 <div class="container mt-5">
   <h2 class="mb-4">Content Creator Dashboard</h2>
-  
+
   <div class="row">
     <!-- Create New Post -->
     <div class="col-md-6">
@@ -36,33 +35,35 @@
         <div class="card-header bg-info text-white">Your Recent Posts</div>
         <div class="card-body p-0">
           {% if my_posts %}
-          <table class="table table-striped mb-0">
-            <thead>
-              <tr>
-                <th>Title</th>
-                <th>Status</th>
-                <th>Scheduled Time</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for post in my_posts|slice:":3" %}
-              <tr>
-                <td>{{ post.title }}</td>
-                <td>{{ post.status }}</td>
-                <td>{{ post.scheduled_time|default:"—" }}</td>
-                <td>
-                  <a href="{% url 'viewPost' post.id %}" class="btn btn-sm btn-outline-primary">View</a>
-                  <a href="{% url 'editPost' post.id %}" class="btn btn-sm btn-outline-secondary">Edit</a>
-                  <form method="POST" action="{% url 'deletePost' post.id %}" class="d-inline">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this post?');">Delete</button>
-                  </form>
-                </td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
+          <div class="table-responsive">
+            <table class="table table-striped mb-0">
+              <thead>
+                <tr>
+                  <th>Title</th>
+                  <th>Status</th>
+                  <th>Scheduled Time</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for post in my_posts|slice:":3" %}
+                <tr>
+                  <td>{{ post.title }}</td>
+                  <td>{{ post.status }}</td>
+                  <td>{{ post.scheduled_time|default:"—" }}</td>
+                  <td>
+                    <a href="{% url 'viewPost' post.id %}" class="btn btn-sm btn-outline-primary">View</a>
+                    <a href="{% url 'editPost' post.id %}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                    <form method="POST" action="{% url 'deletePost' post.id %}" class="d-inline">
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this post?');">Delete</button>
+                    </form>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
           {% else %}
           <p class="p-3">You haven’t created any posts yet.</p>
           {% endif %}
