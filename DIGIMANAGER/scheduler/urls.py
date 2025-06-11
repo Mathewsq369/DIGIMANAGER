@@ -40,5 +40,9 @@ urlpatterns = [
     path('drafts/', views.drafts, name='drafts'),
 
     #images
-    path('generate-image/', views.generateImage, name='generateImage'),
+    #path('generate-image/', views.generateImage, name='generateImage'),
+    path('generate-image/<int:post_id>/', views.generate_ai_image, name='generate_ai_image'),
+    path('refine-image/<int:post_id>/', views.refine_ai_image, name='refine_ai_image'),
+    path('generate-sd-image/<int:post_id>/', views.generate_sd_image, name='generate_sd_image'),
+
 ]

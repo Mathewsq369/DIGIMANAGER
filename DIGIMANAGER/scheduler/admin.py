@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import ContentPrompt, CustomUser, Platform, Post
+from .models import AIGeneratedAsset, ContentPrompt, CustomUser, Platform, Post
 
 # Register your models here.
 
@@ -12,3 +12,4 @@ admin.site.register(ContentPrompt)
 admin.site.register(CustomUser, CustomUserAdmin)
 admin.site.register(Platform)
 admin.site.register(Post)
+admin.site.register(AIGeneratedAsset)
