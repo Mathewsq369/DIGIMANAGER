@@ -38,4 +38,7 @@ urlpatterns = [
     path('generate/', views.generateCaption, name='generateCaption'),
     path('captions/history/', views.captionHistory, name='captionHistory'),
     path('drafts/', views.drafts, name='drafts'),
+
+    #images
+    path('generate-image/', views.generateImage, name='generateImage'),
 ]

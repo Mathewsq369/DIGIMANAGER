@@ -4,6 +4,7 @@ from .forms import RegisterForm
 from django.contrib.auth import login as auth_login, authenticate, logout as auth_logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
 from .forms import PostForm
 from .models import Content, ContentPrompt, Post, Platform
@@ -15,6 +16,52 @@ from django.utils import timezone
 from django.db.models import Count
 from .forms import ContentPromptForm, PlatformForm
 from .aiUtils import generateCaptionAi
+import os
+from django.http import JsonResponse
+from django.core.files.base import ContentFile
+from django.conf import settings
+from django.utils.crypto import get_random_string
+from PIL import Image
+from io import BytesIO
+
+@csrf_exempt
+def generateImage(request):
+    if request.method == 'POST':
+        caption = request.POST.get('caption')
+        model = request.POST.get('model', 'dalle')
+
+        # 1. Generate image URL using mock or actual API
+        if model == 'deepai':
+            api_url = 'https://api.deepai.org/api/text2img'
+            response = requests.post(
+                api_url,
+                data={'text': caption},
+                headers={'api-key': 'f9acbf17-62ad-4229-bd8c-f85b044019fa'}
+            )
+            image_url = response.json()
+        elif model == 'stablediffusion':
+            # Replace with real API URL
+            image_url = "https://via.placeholder.com/500x300.png?text=Stable+Diffusion+Image"
+        else:
+            # Mock DALL·E (or integrate real OpenAI API)
+            image_url = "https://via.placeholder.com/500x300.png?text=DALL·E+Image"
+
+        # 2. Download and save image locally to MEDIA_ROOT
+        try:
+            img_response = requests.get(image_url)
+            if img_response.status_code == 200:
+                filename = f"ai_generated/{get_random_string(12)}.jpg"
+                path = os.path.join(settings.MEDIA_ROOT, filename)
+                os.makedirs(os.path.dirname(path), exist_ok=True)
+
+                with open(path, 'wb') as f:
+                    f.write(img_response.content)
+
+                return JsonResponse({'image_url': settings.MEDIA_URL + filename})
+        except Exception as e:
+            return JsonResponse({'error': str(e)})
+
+    return JsonResponse({'error': 'Invalid request'}, status=400)
 
 def register(request):
     if request.method == 'POST':

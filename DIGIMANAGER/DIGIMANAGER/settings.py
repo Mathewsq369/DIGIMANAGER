@@ -144,3 +144,6 @@ AUTH_USER_MODEL = 'scheduler.CustomUser'
     #messages.WARNING: 'warning',
     #messages.ERROR: 'danger',
 #}
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

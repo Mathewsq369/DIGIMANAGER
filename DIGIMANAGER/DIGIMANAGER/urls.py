@@ -20,6 +20,8 @@ from django.contrib.auth import views as auth_views
 from django.contrib.auth import logout
 from django.shortcuts import redirect
 from django.urls import reverse
+from django.conf import settings
+from django.conf.urls.static import static
 
 def custom_admin_logout(request):
     logout(request)  # Logs the user out
@@ -32,3 +34,5 @@ urlpatterns = [
     path('', include('scheduler.urls')),
     path('content/', include('contentgen.urls'))
 ]
+
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
