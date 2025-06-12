@@ -2,40 +2,7 @@ from django.db import models
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 
-class CustomUser(AbstractUser):
-    ROLE_CHOICES = [
-        ('admin', 'Admin'),
-        ('creator', 'Content Creator'),
-        ('manager', 'Manager'),
-    ]
-    role = models.CharField(max_length=10, choices=ROLE_CHOICES)
 
-class ContentPrompt(models.Model):
-    prompt = models.TextField()
-    generated_caption = models.TextField()
-    tone = models.CharField(max_length=50, choices=[
-        ('formal', 'Formal'),
-        ('humorous', 'Humorous'),
-        ('promotional', 'Promotional'),
-        ('informative', 'Informative'),
-    ])
-    platform = models.ForeignKey(Platform, on_delete=models.CASCADE,related_name='contentprompts_scheduler')
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,related_name='contentprompts_scheduler')
-    timestamp = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"{self.prompt[:50]}..."
-
-
-class Content(models.Model):
-    ...
-    STATUS_CHOICES = [
-        ('draft', 'Draft'),
-        ('published', 'Published'),
-    ]
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='draft')
-    created_at = models.DateTimeField(auto_now_add=True)
 
 class Platform(models.Model):
     PLATFORM_CHOICES = [
@@ -89,3 +56,39 @@ class AIGeneratedAsset(models.Model):
 
     def __str__(self):
         return f"{self.asset_type} by {self.source_model} for Post ID {self.post.id}"
+
+
+class CustomUser(AbstractUser):
+    ROLE_CHOICES = [
+        ('admin', 'Admin'),
+        ('creator', 'Content Creator'),
+        ('manager', 'Manager'),
+    ]
+    role = models.CharField(max_length=10, choices=ROLE_CHOICES)
+
+class ContentPrompt(models.Model):
+    prompt = models.TextField()
+    generated_caption = models.TextField()
+    tone = models.CharField(max_length=50, choices=[
+        ('formal', 'Formal'),
+        ('humorous', 'Humorous'),
+        ('promotional', 'Promotional'),
+        ('informative', 'Informative'),
+    ])
+    platform = models.ForeignKey(Platform, on_delete=models.CASCADE,related_name='contentprompts_scheduler')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,related_name='contentprompts_scheduler')
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.prompt[:50]}..."
+
+
+class Content(models.Model):
+    ...
+    STATUS_CHOICES = [
+        ('draft', 'Draft'),
+        ('published', 'Published'),
+    ]
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='draft')
+    created_at = models.DateTimeField(auto_now_add=True)        
