@@ -148,5 +148,25 @@ AUTH_USER_MODEL = 'scheduler.CustomUser'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-OPENAI_API_KEY = "f9acbf17-62ad-4229-bd8c-f85b044019fa"
+OPENAI_API_KEY = "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"
 HUGGINGFACE_CACHE_DIR = os.path.join(BASE_DIR, "hf_models")
+
+
+# settings.py
+LOGGING = {
+    'version': 1,
+    'handlers': {
+        'file': {
+            'level': 'ERROR',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'errors.log'),
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+    },
+}

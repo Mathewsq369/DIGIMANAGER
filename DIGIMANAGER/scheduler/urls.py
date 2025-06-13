@@ -12,7 +12,7 @@ urlpatterns = [
     # AI Image
     path('ai/generate/<int:post_id>/', views.generate_ai_image, name='generate_ai_image'),
     path('ai/refine/<int:post_id>/', views.refine_ai_image, name='refine_ai_image'),
-    path('ai/sd/<int:post_id>/', views.generate_sd_image, name='generate_sd_image'),
+    path('ai/sd/<int:post_id>/', views.generate_image_sd, name='generate_sd_image'),
 
     # Caption
     path('caption/generate/', views.generateCaption, name='generateCaption'),

@@ -22,19 +22,56 @@ from .forms import RegisterForm, PostForm, ContentPromptForm, PlatformForm
 from .models import Content, ContentPrompt, Post, Platform
 from .tasks import publishPost
 from .aiUtils import generateCaptionAi
-from .utils.aiGeneration import generate_image_gpt4, refine_image_gpt4, generate_image_sd
-
+from .utils.aiGeneration import generate_dalle_image, refine_image_gpt4, generate_image_sd
+from django.views.decorators.http import require_POST
+from django.core.files import File
+import logging
 
 #######################
 # AI IMAGE GENERATION #
 #######################
 
-@login_required
+@require_POST
+@csrf_exempt
 def generate_ai_image(request, post_id):
-    post = get_object_or_404(Post, id=post_id)
-    prompt = request.GET.get("prompt", "A futuristic sunset")
-    image_url = generate_image_gpt4(post, prompt)
-    return JsonResponse({"status": "success", "image_url": image_url})
+    from yourapp.utils import generate_image_sd  # or your AI image generation logic
+    from django.conf import settings
+    import os
+
+    caption = request.POST.get('caption')
+    model = request.POST.get('model')
+
+    if not caption or not model:
+        return JsonResponse({'error': 'Missing caption or model.'}, status=400)
+
+    try:
+        post = Post.objects.get(id=post_id)
+
+        # Try real generation
+        if model == "stablediffusion":
+            try:
+                image_url = generate_image_sd(post, caption)
+            except Exception as ai_error:
+                logging.error(f"AI Generation failed: {ai_error}")
+                # Fallback: Use dummy image
+                image_url = f"https://dummyimage.com/600x400/cccccc/000000&text=AI+Unavailable"
+
+        else:
+            # Handle other models (e.g., DeepAI, DALL·E)
+            image_url = f"https://dummyimage.com/600x400/333/fff&text={model}+Image"
+
+        post.image = image_url  # if you're using ImageField + URL or update later after download
+        post.save()
+
+        return JsonResponse({'image_url': image_url})
+
+    except Post.DoesNotExist:
+        return JsonResponse({'error': 'Post not found.'}, status=404)
+    except Exception as e:
+        logging.exception("Unexpected error:")
+        return JsonResponse({'error': 'Unexpected server error.'}, status=500)
+
+
 
 @login_required
 def refine_ai_image(request, post_id):
@@ -44,12 +81,20 @@ def refine_ai_image(request, post_id):
     image_url = refine_image_gpt4(post, image_call_id, prompt)
     return JsonResponse({"status": "success", "image_url": image_url})
 
-@login_required
-def generate_sd_image(request, post_id):
-    post = get_object_or_404(Post, id=post_id)
-    prompt = request.GET.get("prompt", "A robot in a forest")
-    image_url = generate_image_sd(post, prompt)
-    return JsonResponse({"status": "success", "image_url": image_url})
+def generate_image_sd(prompt):
+    model_id = "sd-legacy/stable-diffusion-v1-5"
+    pipe = StableDiffusionPipeline.from_pretrained(
+        model_id,
+        cache_dir=settings.HUGGINGFACE_CACHE_DIR,
+        torch_dtype=torch.float16
+    ).to("cuda")
+
+    image = pipe(prompt).images[0]
+    filename = f"{uuid.uuid4().hex}.png"
+    path = os.path.join(settings.MEDIA_ROOT, "ai_generated", filename)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    image.save(path)
+    return path
 
 
 ##########
