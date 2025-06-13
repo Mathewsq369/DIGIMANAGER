@@ -34,7 +34,7 @@
       <div class="card border-info">
         <div class="card-header bg-info text-white">Your Recent Posts</div>
         <div class="card-body p-0">
-          {% if my_posts %}
+          {% if posts %}
           <div class="table-responsive">
             <table class="table table-striped mb-0">
               <thead>
@@ -46,7 +46,7 @@
                 </tr>
               </thead>
               <tbody>
-                {% for post in my_posts|slice:":3" %}
+                {% for post in posts|slice:":3" %}
                 <tr>
                   <td>{{ post.title }}</td>
                   <td>{{ post.status }}</td>

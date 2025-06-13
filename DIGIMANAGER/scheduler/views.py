@@ -173,7 +173,7 @@ def editPost(request, post_id):
     else:
         form = PostForm(instance=post)
 
-    return render(request, 'posts/createPost.html', {'form': form})
+    return render(request, 'posts/createPost.html', {'form': form, 'post':post})
 
 @login_required
 def deletePost(request, post_id):
@@ -296,7 +296,7 @@ def creatorDashboard(request):
     my_posts = Post.objects.filter(user=request.user)
     platforms = Platform.objects.all()
     return render(request, 'dashboards/creatorDashboard.html', {
-        'my_posts': my_posts,
+        'posts': my_posts,
         'platforms': platforms,
     })
 

@@ -1,47 +1,45 @@
-from django.urls import path
+# project/urls.py
+
+from django.contrib import admin
+from django.urls import path, include
 from . import views
 
 urlpatterns = [
-    path('', views.login, name='login'),
     path('register/', views.register, name='register'),
+    path('', views.login, name='login'),
     path('logout/', views.logout, name='logout'),
 
-    #dashboards
-    path('dashboards/admDashboard', views.admDashboard, name='admDashboard'),
-    path('dashboards/creatorDashboard', views.creatorDashboard, name='creatorDashboard'),
-    path('dashboards/managerDashboard', views.managerDashboard, name='managerDashboard'),
-    #path('dashboard/', views.genericDashboard, name='dashboard'),
-    #path('unauthorized/', views.unauthorized, name='unauthorized'),
+    # AI Image
+    path('ai/generate/<int:post_id>/', views.generate_ai_image, name='generate_ai_image'),
+    path('ai/refine/<int:post_id>/', views.refine_ai_image, name='refine_ai_image'),
+    path('ai/sd/<int:post_id>/', views.generate_sd_image, name='generate_sd_image'),
 
-    # Content Management
-    path('create/', views.createPost, name='createPost'),
-    path('my-posts/', views.myPosts, name='myPosts'),
-    path('post/<int:post_id>/', views.viewPost, name='viewPost'),
-    path('post/<int:post_id>/edit/', views.editPost, name='editPost'),
-    path('post/<int:post_id>/delete/', views.deletePost, name='deletePost'),
+    # Caption
+    path('caption/generate/', views.generateCaption, name='generateCaption'),
+    path('caption/history/', views.captionHistory, name='captionHistory'),
+
+    # Posts & drafts
+    path('posts/create/', views.createPost, name='createPost'),
+    path('posts/', views.myPosts, name='myPosts'),
+    path('posts/drafts/', views.drafts, name='drafts'),
+    path('posts/<int:post_id>/', views.viewPost, name='viewPost'),
+    path('posts/<int:post_id>/edit/', views.editPost, name='editPost'),
+    path('posts/<int:post_id>/delete/', views.deletePost, name='deletePost'),
 
     # Approvals
-    path('approve-posts/', views.approvePosts, name='approvePosts'),
-    path('approve-post/<int:post_id>/', views.approvePostAction, name='approvePost'),
-    path('reject-post/<int:post_id>/', views.rejectPostAction, name='rejectPost'),
+    path('posts/approve/', views.approvePosts, name='approvePosts'),
+    path('posts/approve/<int:post_id>/', views.approvePostAction, name='approvePostAction'),
+    path('posts/reject/<int:post_id>/', views.rejectPostAction, name='rejectPostAction'),
 
-    # Analytics
+    # Platforms
+    path('platforms/manage/', views.managePlatforms, name='managePlatforms'),
+    path('platforms/<int:pk>/edit/', views.editPlatform, name='editPlatform'),
+    path('platforms/<int:pk>/delete/', views.deletePlatform, name='deletePlatform'),
+
+    # Dashboards
+    path('creator-dashboard/', views.creatorDashboard, name='creatorDashboard'),
+    path('admin-dashboard/', views.admDashboard, name='admDashboard'),
+    path('manager-dashboard/', views.managerDashboard, name='managerDashboard'),
     path('analytics/', views.analyticsDashboard, name='analyticsDashboard'),
-
-    #platforms
-    path('platforms/', views.managePlatforms, name='managePlatforms'),
-    path('manage-platforms/', views.managePlatforms, name='managePlatforms'),
-    path('platform/edit/<int:pk>/', views.editPlatform, name='editPlatform'),
-    path('platform/delete/<int:pk>/', views.deletePlatform, name='deletePlatform'),
-    
-    #Captions
-    path('generate/', views.generateCaption, name='generateCaption'),
-    path('captions/history/', views.captionHistory, name='captionHistory'),
-    path('drafts/', views.drafts, name='drafts'),
-
-    #images
-    path('generate-image/gpt4/<int:post_id>/', views.generate_ai_image, name='generate_ai_image'),
-    path('refine-image/gpt4/<int:post_id>/', views.refine_ai_image, name='refine_ai_image'),
-    path('generate-image/sd/<int:post_id>/', views.generate_sd_image, name='generate_sd_image'),
-
+    path('unauthorized/', views.unauthorized, name='unauthorized'),
 ]
