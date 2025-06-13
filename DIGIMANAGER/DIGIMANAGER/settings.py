@@ -148,7 +148,7 @@ AUTH_USER_MODEL = 'scheduler.CustomUser'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-OPENAI_API_KEY = "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"
+OPENAI_API_KEY = ""
 HUGGINGFACE_CACHE_DIR = os.path.join(BASE_DIR, "hf_models")
 
 
