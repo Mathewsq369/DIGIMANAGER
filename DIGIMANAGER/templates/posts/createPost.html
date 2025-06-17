@@ -108,7 +108,7 @@
       generateBtn.disabled = true;
       generateBtn.textContent = "Generating...";
 
-        fetch("{% url 'generate_ai_image' post.id %}", {
+        fetch("{% url 'generate_ai_image'%}", {
         method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",

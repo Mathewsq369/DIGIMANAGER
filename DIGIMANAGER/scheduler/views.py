@@ -204,7 +204,7 @@ def createPost(request):
             return redirect('creatorDashboard')
     else:
         form = PostForm()
-    return render(request, 'posts/createPost.html', {'form': form, 'post':post})
+    return render(request, 'posts/createPost.html',{'form': form})
 
 @login_required
 def myPosts(request):
