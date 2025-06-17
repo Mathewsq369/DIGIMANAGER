@@ -45,6 +45,24 @@
 
 <!-- Scripts -->
 <script>
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        // Does this cookie string begin with the name we want?
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
+  const csrftoken = getCookie('csrftoken');
+
   document.addEventListener("DOMContentLoaded", function () {
     const captionInput = document.getElementById("id_content");
     const imageInput = document.getElementById("id_image");
@@ -90,25 +108,36 @@
       generateBtn.disabled = true;
       generateBtn.textContent = "Generating...";
 
-      fetch("{% url 'generate_ai_image' post.id %}", {
+        fetch("{% url 'generate_ai_image' post.id %}", {
         method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
           "X-CSRFToken": "{{ csrf_token }}",
         },
-        body: new URLSearchParams({ caption: caption, model: model })
+        body: new URLSearchParams({
+          caption: caption,
+          model: model
+        })
       })
-      .then(response => response.json())
+      .then(async response => {
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error("Server Error: " + errorText);
+        }
+        return response.json();
+      })
       .then(data => {
         if (data.image_url) {
           previewImage.src = data.image_url;
           previewImage.classList.remove("d-none");
-          // Auto-fill the image input with a hidden field (optional)
         } else {
-          alert(data.error || "Failed to generate image.");
+          alert(data.error || "Image generation failed.");
         }
       })
-      .catch(error => alert("Error: " + error))
+      .catch(error => {
+        console.error("Fetch error:", error);
+        alert("Image generation failed: " + error.message);
+      })
       .finally(() => {
         generateBtn.disabled = false;
         generateBtn.textContent = "Generate Image with AI";

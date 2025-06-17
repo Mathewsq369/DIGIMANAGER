@@ -4,6 +4,10 @@ import calendar
 from io import BytesIO
 from datetime import timedelta
 
+import torch
+from diffusers import StableDiffusionPipeline
+import uuid
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth import login as auth_login, authenticate, logout as auth_logout, get_user_model
@@ -27,6 +31,7 @@ from django.views.decorators.http import require_POST
 from django.core.files import File
 import logging
 
+
 #######################
 # AI IMAGE GENERATION #
 #######################
@@ -34,9 +39,6 @@ import logging
 @require_POST
 @csrf_exempt
 def generate_ai_image(request, post_id):
-    from yourapp.utils import generate_image_sd  # or your AI image generation logic
-    from django.conf import settings
-    import os
 
     caption = request.POST.get('caption')
     model = request.POST.get('model')
@@ -81,13 +83,25 @@ def refine_ai_image(request, post_id):
     image_url = refine_image_gpt4(post, image_call_id, prompt)
     return JsonResponse({"status": "success", "image_url": image_url})
 
-def generate_image_sd(prompt):
-    model_id = "sd-legacy/stable-diffusion-v1-5"
+
+def generate_image_sd(prompt, post_id):
+    model_id = "stabilityai/stable-diffusion-2-1"
     pipe = StableDiffusionPipeline.from_pretrained(
         model_id,
-        cache_dir=settings.HUGGINGFACE_CACHE_DIR,
-        torch_dtype=torch.float16
+        torch_dtype=torch.float16,
+        cache_dir=settings.HUGGINGFACE_CACHE_DIR
     ).to("cuda")
+
+    result = pipe(prompt, num_inference_steps=50).images[0]
+
+    # Save to MEDIA directory
+    filename = f"{uuid.uuid4()}.png"
+    image_path = os.path.join(settings.MEDIA_ROOT, "generated", filename)
+    os.makedirs(os.path.dirname(image_path), exist_ok=True)
+    result.save(image_path)
+
+    return image_path  # Full path used by view
+
 
     image = pipe(prompt).images[0]
     filename = f"{uuid.uuid4().hex}.png"
@@ -189,7 +203,7 @@ def createPost(request):
             return redirect('creatorDashboard')
     else:
         form = PostForm()
-    return render(request, 'posts/createPost.html', {'form': form})
+    return render(request, 'posts/createPost.html', {'form': form, 'post':post})
 
 @login_required
 def myPosts(request):

@@ -136,14 +136,14 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'scheduler.CustomUser'
 
 # Messages
-#MESSAGE_TAGS = {
-    #messages.DEBUG: 'debug',
- #   messages.DEBUG: 'secondary',
-  #  messages.INFO: 'info',
-   # messages.SUCCESS: 'success',
-    #messages.WARNING: 'warning',
-    #messages.ERROR: 'danger',
-#}
+MESSAGE_TAGS = {
+    messages.DEBUG: 'debug',
+    messages.DEBUG: 'secondary',
+    messages.INFO: 'info',
+    messages.SUCCESS: 'success',
+    messages.WARNING: 'warning',
+    messages.ERROR: 'danger',
+}
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
