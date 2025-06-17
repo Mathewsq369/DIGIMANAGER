@@ -11,7 +11,7 @@ class Platform(models.Model):
         ('twitter', 'Twitter (X)'),
         ('linkedin', 'LinkedIn'),
     ]
-    name = models.CharField(max_length=50, choices=PLATFORM_CHOICES)
+    name = models.CharField(max_length=50, choices=PLATFORM_CHOICES, default='instagram')
     access_token = models.TextField()
     refresh_token = models.TextField(blank=True, null=True)
     expires_in = models.IntegerField(blank=True, null=True)
@@ -33,7 +33,7 @@ class Post(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     platform = models.ForeignKey(Platform, on_delete=models.CASCADE)
     content = models.TextField()  # Can be AI-generated
-    image = models.ImageField(upload_to='images/', null=True, blank=True)  # Optional manual upload
+    image = models.ImageField(upload_to='', null=True, blank=True)  # Optional manual upload
     scheduled_time = models.DateTimeField()
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='draft')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -51,7 +51,7 @@ class AIGeneratedAsset(models.Model):
     source_model = models.CharField(max_length=100)  # 'gpt-4.1', 'dall-e-2', 'stable-diffusion-v1.5', etc.
     generation_prompt = models.TextField()
     output_data = models.TextField(help_text="Base64 string or image URL")
-    file = models.ImageField(upload_to='ai_generated/', null=True, blank=True)
+    file = models.ImageField(upload_to='', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

@@ -145,8 +145,8 @@ MESSAGE_TAGS = {
     messages.ERROR: 'danger',
 }
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = 'media/images/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'images')
 
 OPENAI_API_KEY = ""
 HUGGINGFACE_CACHE_DIR = os.path.join(BASE_DIR, "hf_models")

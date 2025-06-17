@@ -86,11 +86,12 @@ def refine_ai_image(request, post_id):
 
 def generate_image_sd(prompt, post_id):
     model_id = "stabilityai/stable-diffusion-2-1"
+    device = "cuda" if torch.cuda.is_available() else "cpu"
     pipe = StableDiffusionPipeline.from_pretrained(
         model_id,
         torch_dtype=torch.float16,
         cache_dir=settings.HUGGINGFACE_CACHE_DIR
-    ).to("cuda")
+    ).to(device)
 
     result = pipe(prompt, num_inference_steps=50).images[0]
 
@@ -105,7 +106,7 @@ def generate_image_sd(prompt, post_id):
 
     image = pipe(prompt).images[0]
     filename = f"{uuid.uuid4().hex}.png"
-    path = os.path.join(settings.MEDIA_ROOT, "ai_generated", filename)
+    path = os.path.join(settings.MEDIA_ROOT, "", filename)
     os.makedirs(os.path.dirname(path), exist_ok=True)
     image.save(path)
     return path

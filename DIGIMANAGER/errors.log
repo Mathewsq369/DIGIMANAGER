@@ -103,3 +103,42 @@ Traceback (most recent call last):
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ModuleNotFoundError: No module named 'yourapp'
 "POST /ai/generate/1/ HTTP/1.1" 500 76656
+Internal Server Error: /posts/create/
+Traceback (most recent call last):
+  File "/home/s1gm9/Documents/Projects/DIGIMANAGER/venv/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/s1gm9/Documents/Projects/DIGIMANAGER/venv/lib/python3.13/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/s1gm9/Documents/Projects/DIGIMANAGER/venv/lib/python3.13/site-packages/django/contrib/auth/decorators.py", line 60, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "/home/s1gm9/Documents/Projects/DIGIMANAGER/DIGIMANAGER/scheduler/views.py", line 207, in createPost
+    return render(request, 'posts/createPost.html', {'form': form, 'post':post})
+                                                                          ^^^^
+UnboundLocalError: cannot access local variable 'post' where it is not associated with a value
+"GET /posts/create/ HTTP/1.1" 500 73705
+Internal Server Error: /posts/create/
+Traceback (most recent call last):
+  File "/home/s1gm9/Documents/Projects/DIGIMANAGER/venv/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/s1gm9/Documents/Projects/DIGIMANAGER/venv/lib/python3.13/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/s1gm9/Documents/Projects/DIGIMANAGER/venv/lib/python3.13/site-packages/django/contrib/auth/decorators.py", line 60, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "/home/s1gm9/Documents/Projects/DIGIMANAGER/DIGIMANAGER/scheduler/views.py", line 207, in createPost
+    return render(request, 'posts/createPost.html', {'form': form, 'post':post})
+                                                                          ^^^^
+UnboundLocalError: cannot access local variable 'post' where it is not associated with a value
+"GET /posts/create/ HTTP/1.1" 500 73536
+Internal Server Error: /posts/create/
+Traceback (most recent call last):
+  File "/home/s1gm9/Documents/Projects/DIGIMANAGER/venv/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/s1gm9/Documents/Projects/DIGIMANAGER/venv/lib/python3.13/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/s1gm9/Documents/Projects/DIGIMANAGER/venv/lib/python3.13/site-packages/django/contrib/auth/decorators.py", line 60, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "/home/s1gm9/Documents/Projects/DIGIMANAGER/DIGIMANAGER/scheduler/views.py", line 207, in createPost
+    return render(request, 'posts/createPost.html', {'form': form, 'post':post})
+                                                                          ^^^^
+UnboundLocalError: cannot access local variable 'post' where it is not associated with a value
+"GET /posts/create/ HTTP/1.1" 500 73536
