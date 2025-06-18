@@ -38,31 +38,29 @@ import logging
 
 @require_POST
 @csrf_exempt
-def generate_ai_image(request, post_id):
-
+def generate_ai_image(request):
     caption = request.POST.get('caption')
     model = request.POST.get('model')
+    post_id = request.POST.get('post_id')  # 🔥 FIXED: Get post_id from request
 
-    if not caption or not model:
-        return JsonResponse({'error': 'Missing caption or model.'}, status=400)
+    if not caption or not model or not post_id:
+        return JsonResponse({'error': 'Missing caption, model, or post ID.'}, status=400)
 
     try:
         post = Post.objects.get(id=post_id)
 
-        # Try real generation
         if model == "stablediffusion":
             try:
-                image_url = generate_image_sd(post, caption)
+                image_path = generate_image_sd(caption)  # 🔥 caption passed to generation
+                # Convert to relative URL
+                image_url = os.path.join(settings.MEDIA_URL, "generated", os.path.basename(image_path))
             except Exception as ai_error:
                 logging.error(f"AI Generation failed: {ai_error}")
-                # Fallback: Use dummy image
                 image_url = f"https://dummyimage.com/600x400/cccccc/000000&text=AI+Unavailable"
-
         else:
-            # Handle other models (e.g., DeepAI, DALL·E)
             image_url = f"https://dummyimage.com/600x400/333/fff&text={model}+Image"
 
-        post.image = image_url  # if you're using ImageField + URL or update later after download
+        post.image = image_url  # Ensure this is a URL or file path depending on model
         post.save()
 
         return JsonResponse({'image_url': image_url})
@@ -84,7 +82,7 @@ def refine_ai_image(request, post_id):
     return JsonResponse({"status": "success", "image_url": image_url})
 
 
-def generate_image_sd(prompt, post_id):
+def generate_image_sd(prompt):
     model_id = "stabilityai/stable-diffusion-2-1"
     device = "cuda" if torch.cuda.is_available() else "cpu"
     pipe = StableDiffusionPipeline.from_pretrained(
@@ -95,21 +93,12 @@ def generate_image_sd(prompt, post_id):
 
     result = pipe(prompt, num_inference_steps=50).images[0]
 
-    # Save to MEDIA directory
     filename = f"{uuid.uuid4()}.png"
     image_path = os.path.join(settings.MEDIA_ROOT, "generated", filename)
     os.makedirs(os.path.dirname(image_path), exist_ok=True)
     result.save(image_path)
 
-    return image_path  # Full path used by view
-
-
-    image = pipe(prompt).images[0]
-    filename = f"{uuid.uuid4().hex}.png"
-    path = os.path.join(settings.MEDIA_ROOT, "", filename)
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    image.save(path)
-    return path
+    return image_path  # Returns absolute path; convert to URL in view
 
 
 ##########
