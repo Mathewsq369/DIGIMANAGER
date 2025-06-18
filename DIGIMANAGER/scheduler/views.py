@@ -72,14 +72,14 @@ def generate_ai_image(request):
         return JsonResponse({'error': 'Unexpected server error.'}, status=500)
 
 
-
 @login_required
-def refine_ai_image(request, post_id):
-    post = get_object_or_404(Post, id=post_id)
-    prompt = request.GET.get("prompt", "Make it look more realistic")
-    image_call_id = request.GET.get("image_call_id")
-    image_url = refine_image_gpt4(post, image_call_id, prompt)
-    return JsonResponse({"status": "success", "image_url": image_url})
+def refine_ai_image(request):
+    if request.method == 'POST':
+        raw_prompt = request.POST.get('prompt')
+        refined_prompt = ai_prompt_enhancer(raw_prompt)  # Optional NLP enhancer
+        refined_image = generate_image_from_prompt(refined_prompt)
+        return render(request, 'ai/refine_result.html', {'image': refined_image, 'prompt': refined_prompt})
+    return render(request, 'ai/refine.html')
 
 
 def generate_image_sd(prompt):
