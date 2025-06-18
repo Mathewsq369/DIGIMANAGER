@@ -20,7 +20,7 @@ from django.core.files.base import ContentFile
 from django.conf import settings
 from django.utils.crypto import get_random_string
 from django.db.models import Count
-from PIL import Image
+from PIL import Image, ImageDraw
 
 from .forms import RegisterForm, PostForm, ContentPromptForm, PlatformForm
 from .models import Content, ContentPrompt, Post, Platform
@@ -33,21 +33,12 @@ import logging
 
 from urllib.request import urlretrieve
 from urllib.parse import urlparse
+from .tasks import publishPost  # assuming you're using Celery for scheduling
+
 
 #######################
 # AI IMAGE GENERATION #
 #######################
-
-import os
-import uuid
-from io import BytesIO
-from PIL import Image, ImageDraw
-from django.conf import settings
-from django.http import JsonResponse
-from django.views.decorators.http import require_POST
-from django.views.decorators.csrf import csrf_exempt
-from .models import Post
-
 
 @require_POST
 @csrf_exempt
@@ -220,21 +211,48 @@ def createPost(request):
 
     if request.method == 'POST':
         form = PostForm(request.POST, request.FILES)
+
+        # Hidden input used to pass the AI-generated image URL from the frontend
+        ai_image_url = request.POST.get('ai_image_url')
+
         if form.is_valid():
             post = form.save(commit=False)
             post.user = request.user
             post.status = request.POST.get('status', 'draft')
+
+            # No manual image uploaded, but an AI-generated one exists
+            if not request.FILES.get('image') and ai_image_url:
+                try:
+                    parsed_url = urlparse(ai_image_url)
+                    filename = os.path.basename(parsed_url.path)
+                    temp_path = os.path.join(settings.MEDIA_ROOT, 'ai_temp', filename)
+
+                    if os.path.exists(temp_path):
+                        final_path = os.path.join(settings.MEDIA_ROOT, 'posts', filename)
+                        os.makedirs(os.path.dirname(final_path), exist_ok=True)
+                        os.rename(temp_path, final_path)
+
+                        post.image.name = f'posts/{filename}'
+                    else:
+                        messages.warning(request, "AI-generated image not found in temp storage.")
+                except Exception as e:
+                    messages.error(request, f"Error processing AI image: {str(e)}")
+
             post.save()
 
+            # Handle scheduled posts
             if post.status == 'scheduled' and post.scheduled_time:
                 eta = (post.scheduled_time - timezone.now()).total_seconds()
                 publishPost.apply_async((post.id,), countdown=eta)
 
             messages.success(request, "Post saved successfully.")
             return redirect('creatorDashboard')
+        else:
+            messages.error(request, "Please correct the form errors.")
     else:
         form = PostForm()
-    return render(request, 'posts/createPost.html',{'form': form})
+
+    return render(request, 'posts/createPost.html', {'form': form})
 
 @login_required
 def myPosts(request):
