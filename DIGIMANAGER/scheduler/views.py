@@ -35,7 +35,6 @@ from urllib.request import urlretrieve
 from urllib.parse import urlparse
 from .tasks import publishPost  # assuming you're using Celery for scheduling
 
-
 #######################
 # AI IMAGE GENERATION #
 #######################
@@ -266,38 +265,34 @@ def viewPost(request, post_id):
         return redirect('unauthorized')
     return render(request, 'posts/postDetail.html', {'post': post})
 
-def editPost(request, pk):
-    post = get_object_or_404(Post, pk=pk)
+
+@login_required
+def editPost(request, post_id):
+    post = get_object_or_404(Post, pk=post_id)
+
+    if request.user != post.author:
+        return redirect('unauthorized')  # You can customize this
 
     if request.method == 'POST':
         form = PostForm(request.POST, request.FILES, instance=post)
-        ai_image_url = request.POST.get('ai_image_url')
-
         if form.is_valid():
-            post = form.save(commit=False)
+            updated_post = form.save(commit=False)
 
-            # Only update image if new one was generated and uploaded
-            if not request.FILES.get('image') and ai_image_url:
-                parsed_url = urlparse(ai_image_url)
-                filename = os.path.basename(parsed_url.path)
-                temp_path = os.path.join(settings.MEDIA_ROOT, 'ai_temp', filename)
+            # Optional: Handle AI-generated image URL from hidden input
+            ai_image_url = request.POST.get('ai_image_url')
+            if ai_image_url:
+                updated_post.image = ai_image_url  # This works if image is a URL field or handle as needed
 
-                if os.path.exists(temp_path):
-                    final_path = os.path.join(settings.MEDIA_ROOT, 'posts', filename)
-                    os.makedirs(os.path.dirname(final_path), exist_ok=True)
-                    os.rename(temp_path, final_path)
-
-                    post.image.name = f'posts/{filename}'
-
-            post.save()
-            return redirect('myPosts')
+            updated_post.save()
+            return redirect('viewPost', post_id=updated_post.pk)
     else:
         form = PostForm(instance=post)
 
-    return render(request, 'contentgen/createPost.html', {
+    context = {
         'form': form,
-        'post': post,  # pass this for AI previews and JS updates
-    })
+        'post': post,
+    }
+    return render(request, 'createPost.html', context)
 
 @login_required
 def deletePost(request, post_id):

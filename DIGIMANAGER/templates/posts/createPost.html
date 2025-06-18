@@ -12,6 +12,9 @@
       <div class="col-md-6">
         {{ form|crispy }}
 
+        <!-- Hidden field to hold AI-generated image URL -->
+        <input type="hidden" name="ai_image_url" id="ai-image-url" value="">
+
         <!-- AI Image Generator Controls -->
         <div class="form-group mt-3">
           <label for="model-select">Choose AI Model:</label>
@@ -51,7 +54,6 @@
       const cookies = document.cookie.split(';');
       for (let i = 0; i < cookies.length; i++) {
         const cookie = cookies[i].trim();
-        // Does this cookie string begin with the name we want?
         if (cookie.substring(0, name.length + 1) === (name + '=')) {
           cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
           break;
@@ -70,6 +72,7 @@
     const previewImage = document.getElementById("preview-image");
     const generateBtn = document.getElementById("generate-image-btn");
     const modelSelect = document.getElementById("model-select");
+    const hiddenImageField = document.getElementById("ai-image-url");
 
     // Live caption preview
     if (captionInput) {
@@ -108,11 +111,11 @@
       generateBtn.disabled = true;
       generateBtn.textContent = "Generating...";
 
-        fetch("{% url 'generate_ai_image'%}", {
+      fetch("{% url 'generate_ai_image' %}", {
         method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
-          "X-CSRFToken": "{{ csrf_token }}",
+          "X-CSRFToken": csrftoken,
         },
         body: new URLSearchParams({
           caption: caption,
@@ -130,6 +133,9 @@
         if (data.image_url) {
           previewImage.src = data.image_url;
           previewImage.classList.remove("d-none");
+
+          // Set the hidden input value
+          hiddenImageField.value = data.image_url;
         } else {
           alert(data.error || "Image generation failed.");
         }

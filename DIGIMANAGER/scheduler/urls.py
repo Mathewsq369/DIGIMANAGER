@@ -24,9 +24,9 @@ urlpatterns = [
     path('posts/create/', views.createPost, name='createPost'),
     path('posts/', views.myPosts, name='myPosts'),
     path('posts/drafts/', views.drafts, name='drafts'),
-    path('posts/view/<int:post_id>/', views.view_post, name='viewPost'),
+    path('posts/view/<int:post_id>/', views.viewPost, name='viewPost'),
     path('post/<int:pk>/edit/', views.editPost, name='editPost'),
-    path('posts/delete/', views.deletePost, name='deletePost'),
+    path('posts/delete/<int:post_id>/', views.deletePost, name='deletePost'),
 
     # Approvals
     path('posts/approve/', views.approvePosts, name='approvePosts'),
