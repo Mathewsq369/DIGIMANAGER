@@ -31,45 +31,86 @@ from django.views.decorators.http import require_POST
 from django.core.files import File
 import logging
 
+from urllib.request import urlretrieve
+from urllib.parse import urlparse
 
 #######################
 # AI IMAGE GENERATION #
 #######################
 
+import os
+import uuid
+from io import BytesIO
+from PIL import Image, ImageDraw
+from django.conf import settings
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_exempt
+from .models import Post
+
+
 @require_POST
 @csrf_exempt
-def generate_ai_image(request):
-    caption = request.POST.get('caption')
-    model = request.POST.get('model')
-    post_id = request.POST.get('post_id')  # 🔥 FIXED: Get post_id from request
+def generate_ai_image(request, post_id=None):
+    caption = request.POST.get("caption")
+    model = request.POST.get("model", "dalle")
 
-    if not caption or not model or not post_id:
-        return JsonResponse({'error': 'Missing caption, model, or post ID.'}, status=400)
+    if not caption or not model:
+        return JsonResponse({"error": "Missing caption or model."}, status=400)
 
     try:
-        post = Post.objects.get(id=post_id)
-
+        # Simulate or generate image
         if model == "stablediffusion":
             try:
-                image_path = generate_image_sd(caption)  # 🔥 caption passed to generation
-                # Convert to relative URL
-                image_url = os.path.join(settings.MEDIA_URL, "generated", os.path.basename(image_path))
-            except Exception as ai_error:
-                logging.error(f"AI Generation failed: {ai_error}")
-                image_url = f"https://dummyimage.com/600x400/cccccc/000000&text=AI+Unavailable"
+                # Placeholder logic for actual Stable Diffusion model
+                image = Image.new('RGB', (600, 400), color='lightblue')
+                draw = ImageDraw.Draw(image)
+                draw.text((10, 180), f"SD: {caption}", fill='black')
+            except Exception:
+                return JsonResponse({"image_url": "https://dummyimage.com/600x400/cccccc/000000&text=AI+Unavailable"})
         else:
-            image_url = f"https://dummyimage.com/600x400/333/fff&text={model}+Image"
+            # Default model (e.g. DALL·E simulation)
+            image = Image.new('RGB', (600, 400), color='lightgray')
+            draw = ImageDraw.Draw(image)
+            draw.text((10, 180), f"{model.upper()}: {caption}", fill='black')
 
-        post.image = image_url  # Ensure this is a URL or file path depending on model
-        post.save()
+        # Save generated image to buffer
+        buffer = BytesIO()
+        image.save(buffer, format='PNG')
+        buffer.seek(0)
 
-        return JsonResponse({'image_url': image_url})
+        filename = f"{uuid.uuid4()}.png"
+        relative_path = f"ai_temp/{filename}"
+        absolute_path = os.path.join(settings.MEDIA_ROOT, relative_path)
+        os.makedirs(os.path.dirname(absolute_path), exist_ok=True)
 
-    except Post.DoesNotExist:
-        return JsonResponse({'error': 'Post not found.'}, status=404)
+        # Write image to disk
+        with open(absolute_path, "wb") as f:
+            f.write(buffer.getvalue())
+
+        image_url = settings.MEDIA_URL + relative_path
+
+        # If post ID is provided, save image to the post
+        if post_id:
+            try:
+                post = Post.objects.get(id=post_id)
+                # Move image to permanent location
+                final_rel_path = f"posts/{filename}"
+                final_abs_path = os.path.join(settings.MEDIA_ROOT, final_rel_path)
+                os.makedirs(os.path.dirname(final_abs_path), exist_ok=True)
+                os.rename(absolute_path, final_abs_path)
+
+                post.image.name = final_rel_path  # store relative path
+                post.save()
+
+                image_url = settings.MEDIA_URL + final_rel_path
+            except Post.DoesNotExist:
+                return JsonResponse({"error": "Post not found."}, status=404)
+
+        return JsonResponse({"image_url": image_url})
+
     except Exception as e:
-        logging.exception("Unexpected error:")
-        return JsonResponse({'error': 'Unexpected server error.'}, status=500)
+        return JsonResponse({"error": "Unexpected server error.", "details": str(e)}, status=500)
 
 
 @login_required
@@ -207,22 +248,38 @@ def viewPost(request, post_id):
         return redirect('unauthorized')
     return render(request, 'posts/postDetail.html', {'post': post})
 
-@login_required
-def editPost(request, post_id):
-    post = get_object_or_404(Post, id=post_id)
-    if request.user != post.user:
-        return redirect('unauthorized')
+def editPost(request, pk):
+    post = get_object_or_404(Post, pk=pk)
 
     if request.method == 'POST':
         form = PostForm(request.POST, request.FILES, instance=post)
+        ai_image_url = request.POST.get('ai_image_url')
+
         if form.is_valid():
-            form.save()
-            messages.success(request, "Post updated successfully.")
+            post = form.save(commit=False)
+
+            # Only update image if new one was generated and uploaded
+            if not request.FILES.get('image') and ai_image_url:
+                parsed_url = urlparse(ai_image_url)
+                filename = os.path.basename(parsed_url.path)
+                temp_path = os.path.join(settings.MEDIA_ROOT, 'ai_temp', filename)
+
+                if os.path.exists(temp_path):
+                    final_path = os.path.join(settings.MEDIA_ROOT, 'posts', filename)
+                    os.makedirs(os.path.dirname(final_path), exist_ok=True)
+                    os.rename(temp_path, final_path)
+
+                    post.image.name = f'posts/{filename}'
+
+            post.save()
             return redirect('myPosts')
     else:
         form = PostForm(instance=post)
 
-    return render(request, 'posts/createPost.html', {'form': form, 'post':post})
+    return render(request, 'contentgen/createPost.html', {
+        'form': form,
+        'post': post,  # pass this for AI previews and JS updates
+    })
 
 @login_required
 def deletePost(request, post_id):

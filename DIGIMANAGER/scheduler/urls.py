@@ -8,6 +8,7 @@ urlpatterns = [
     path('logout/', views.logout, name='logout'),
 
     # AI Image
+    path('ai/generate/<int:post_id>/', views.generate_ai_image, name='generate_ai_image'),
     path('ai/generate/', views.generate_ai_image, name='generate_ai_image'),
     path('ai/refine/', views.refine_ai_image, name='refine_ai_image'),
     path('ai/sd/', views.generate_image_sd, name='generate_sd_image'),
@@ -21,7 +22,7 @@ urlpatterns = [
     path('posts/', views.myPosts, name='myPosts'),
     path('posts/drafts/', views.drafts, name='drafts'),
     path('posts/view/', views.viewPost, name='viewPost'),
-    path('posts/edit/', views.editPost, name='editPost'),
+    path('post/<int:pk>/edit/', views.editPost, name='editPost'),
     path('posts/delete/', views.deletePost, name='deletePost'),
 
     # Approvals

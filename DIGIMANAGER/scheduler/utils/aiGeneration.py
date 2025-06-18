@@ -60,20 +60,18 @@ def refine_image_gpt4(post, image_call_id, prompt):
             return save_base64_image(output.result)
 
 
-def generate_image_sd(post, prompt):
-    model_id = "sd-legacy/stable-diffusion-v1-5"
+def generate_image_sd(prompt):
+    model_id = "stabilityai/stable-diffusion-2-1"
+    device = "cuda" if torch.cuda.is_available() else "cpu"
     pipe = StableDiffusionPipeline.from_pretrained(
         model_id,
-        cache_dir=settings.HUGGINGFACE_CACHE_DIR,
-        torch_dtype=torch.float16
-    )
-    pipe = pipe.to("cuda")
-
-    image = pipe(prompt).images[0]
-    path = os.path.join(settings.MEDIA_ROOT, "ai_generated")
-    os.makedirs(path, exist_ok=True)
-    filename = f"{uuid.uuid4().hex}.png"
-    image_path = os.path.join(path, filename)
-    image.save(image_path)
-
-    return settings.MEDIA_URL + f"ai_generated/{filename}"
+        torch_dtype=torch.float16,
+        cache_dir=settings.HUGGINGFACE_CACHE_DIR
+    ).to(device)
+    img = pipe(prompt, num_inference_steps=50).images[0]
+    filename = f"{uuid.uuid4()}.png"
+    img_dir = os.path.join(settings.MEDIA_ROOT, "generated")
+    os.makedirs(img_dir, exist_ok=True)
+    img_path = os.path.join(img_dir, filename)
+    img.save(img_path)
+    return img_path
