@@ -269,7 +269,7 @@ def viewPost(request, post_id):
 def editPost(request, post_id):
     post = get_object_or_404(Post, pk=post_id)
 
-    if request.user != post.author:
+    if request.user.id != post.user_id:
         return redirect('unauthorized')  # You can customize this
 
     if request.method == 'POST':
@@ -291,7 +291,7 @@ def editPost(request, post_id):
         'form': form,
         'post': post,
     }
-    return render(request, 'createPost.html', context)
+    return render(request, 'posts/createPost.html', context)
 
 @login_required
 def deletePost(request, post_id):
