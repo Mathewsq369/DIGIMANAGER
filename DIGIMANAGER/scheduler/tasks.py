@@ -1,11 +1,12 @@
 from celery import shared_task
+from django.utils import timezone
 from .models import Post
 
 @shared_task
-def publishPost(post_id):
-    try:
-        post = Post.objects.get(id=post_id)
+def auto_publish_scheduled_posts():
+    now = timezone.now()
+    scheduled_posts = Post.objects.filter(status='scheduled', scheduled_time__lte=now)
+
+    for post in scheduled_posts:
         post.status = 'published'
         post.save()
-    except Post.DoesNotExist:
-        pass
