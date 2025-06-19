@@ -24,7 +24,7 @@ from PIL import Image, ImageDraw
 
 from .forms import RegisterForm, PostForm, ContentPromptForm, PlatformForm
 from .models import Content, ContentPrompt, Post, Platform
-from .tasks import publishPost
+from .tasks import auto_publish_scheduled_posts
 from .aiUtils import generateCaptionAi
 from .utils.aiGeneration import generate_dalle_image, refine_image_gpt4, generate_image_sd
 from django.views.decorators.http import require_POST
@@ -33,7 +33,6 @@ import logging
 
 from urllib.request import urlretrieve
 from urllib.parse import urlparse
-from .tasks import publishPost  # assuming you're using Celery for scheduling
 
 #######################
 # AI IMAGE GENERATION #
