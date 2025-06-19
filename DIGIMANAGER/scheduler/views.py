@@ -265,7 +265,6 @@ def viewPost(request, post_id):
         return redirect('unauthorized')
     return render(request, 'posts/postDetail.html', {'post': post})
 
-
 @login_required
 def editPost(request, post_id):
     post = get_object_or_404(Post, pk=post_id)
