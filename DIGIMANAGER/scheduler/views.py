@@ -39,6 +39,7 @@ from .scheduling import schedule_post
 from .utils.utils import cleanup_temp_images
 from django.core.mail import send_mail
 
+from collections import defaultdict
 
 
 #######################
@@ -324,6 +325,7 @@ def schedulePost(request, post_id):
             updated = form.save()
             if updated.status == 'scheduled':
                 schedule_post(updated)  # uses Celery or custom scheduling
+                
             messages.success(request, "Post scheduled!")
             return redirect('creatorDashboard')
     else:
@@ -474,27 +476,69 @@ def analyticsDashboard(request):
     if request.user.role not in ['admin', 'manager']:
         return redirect('unauthorized')
 
+    # --- 1. Status Distribution ---
     status_counts = Post.objects.values('status').annotate(count=Count('status'))
-    status_data = {item['status']: item['count'] for item in status_counts}
+    status_data = {item['status'].capitalize(): item['count'] for item in status_counts}
 
+    # --- 2. Monthly Post Trends (Last 6 months) ---
     months = []
     post_counts = []
+    now = timezone.now()
 
     for i in range(5, -1, -1):
-        dt = timezone.now() - timedelta(days=30 * i)
-        month_name = calendar.month_name[dt.month]
+        target_date = now - timedelta(days=30 * i)
+        month_name = calendar.month_name[target_date.month]
+        year = target_date.year
+        month = target_date.month
+
         count = Post.objects.filter(
-            created_at__month=dt.month,
-            created_at__year=dt.year
+            created_at__year=year,
+            created_at__month=month
         ).count()
+
         months.append(month_name)
         post_counts.append(count)
 
+    # --- 3. Platform Distribution ---
+    platform_counts_raw = Post.objects.values('platform__name').annotate(count=Count('id'))
+    platform_labels = []
+    platform_counts = []
+
+    for item in platform_counts_raw:
+        platform_labels.append(item['platform__name'].title())
+        platform_counts.append(item['count'])
+
+    # --- 4. Platform Post Trends (Line Chart, over past 6 months) ---
+    platform_trend_labels = months.copy()  # Use same month labels for all platforms
+    platform_trend_data = defaultdict(list)
+    platforms = Platform.objects.all().values_list('name', flat=True).distinct()
+
+    for platform in platforms:
+        for i in range(5, -1, -1):
+            target_date = now - timedelta(days=30 * i)
+            count = Post.objects.filter(
+                platform__name=platform,
+                created_at__year=target_date.year,
+                created_at__month=target_date.month
+            ).count()
+            platform_trend_data[platform.title()].append(count)
+
     return render(request, 'dashboards/analytics.html', {
+        # Status Chart
         'status_labels': list(status_data.keys()),
         'status_values': list(status_data.values()),
+
+        # Monthly Chart
         'month_labels': months,
-        'month_data': post_counts
+        'month_data': post_counts,
+
+        # Platform Distribution Chart
+        'platform_labels': platform_labels,
+        'platform_counts': platform_counts,
+
+        # Platform Trends (Line)
+        'platform_trend_labels': platform_trend_labels,
+        'platform_trend_data': dict(platform_trend_data),  # Convert defaultdict to regular dict
     })
 
 
@@ -504,6 +548,3 @@ def analyticsDashboard(request):
 #################
 def send_notification(user, subject, message):
     send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email])
-
-# In Celery task `publish_scheduled_post`:
-send_notification(post.user, 'Post Published', f'Your post "{post.content[:50]}" has just been published.')
