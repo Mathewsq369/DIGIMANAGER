@@ -35,8 +35,8 @@ urlpatterns = [
 
     # Platforms
     path('platforms/manage/', views.managePlatforms, name='managePlatforms'),
-    path('platforms/edit/', views.editPlatform, name='editPlatform'),
-    path('platforms/delete/', views.deletePlatform, name='deletePlatform'),
+    path('platforms/<int:post_id>/edit/', views.editPlatform, name='editPlatform'),
+    path('platforms/<int:post_id>/delete/', views.deletePlatform, name='deletePlatform'),
 
     # Dashboards
     path('creator-dashboard/', views.creatorDashboard, name='creatorDashboard'),

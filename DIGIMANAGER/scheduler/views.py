@@ -24,7 +24,7 @@ from PIL import Image, ImageDraw
 
 from .forms import RegisterForm, PostForm, ContentPromptForm, PlatformForm
 from .models import Content, ContentPrompt, Post, Platform
-from .tasks import auto_publish_scheduled_posts
+from .tasks import publish_scheduled_post
 from .aiUtils import generateCaptionAi
 from .utils.aiGeneration import generate_dalle_image, refine_image_gpt4, generate_image_sd
 from django.views.decorators.http import require_POST
@@ -33,6 +33,11 @@ import logging
 
 from urllib.request import urlretrieve
 from urllib.parse import urlparse
+
+from .scheduling import schedule_post
+
+from .utils.utils import cleanup_temp_images
+
 
 #######################
 # AI IMAGE GENERATION #
@@ -207,6 +212,9 @@ def createPost(request):
     if request.user.role != 'creator':
         return redirect('unauthorized')
 
+    if request.method == 'GET':
+        cleanup_temp_images()
+
     if request.method == 'POST':
         form = PostForm(request.POST, request.FILES)
 
@@ -282,6 +290,10 @@ def editPost(request, post_id):
                 updated_post.image = ai_image_url  # This works if image is a URL field or handle as needed
 
             updated_post.save()
+
+            if updated_post.status == 'scheduled':
+                schedule_post(updated_post)
+
             return redirect('viewPost', post_id=updated_post.pk)
     else:
         form = PostForm(instance=post)
@@ -299,6 +311,7 @@ def deletePost(request, post_id):
         post.delete()
         messages.success(request, "Post deleted.")
     return redirect('myPosts')
+
 
 
 ####################
