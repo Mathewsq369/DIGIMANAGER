@@ -330,7 +330,7 @@ def schedulePost(request, post_id):
             return redirect('creatorDashboard')
     else:
         form = PostForm(instance=post)
-    return render(request, 'posts/schedule_post.html', {'form': form, 'post': post})
+    return render(request, 'posts/schedulePost.html', {'form': form, 'post': post})
 
 
 
