@@ -37,6 +37,8 @@ from urllib.parse import urlparse
 from .scheduling import schedule_post
 
 from .utils.utils import cleanup_temp_images
+from django.core.mail import send_mail
+
 
 
 #######################
@@ -313,6 +315,22 @@ def deletePost(request, post_id):
     return redirect('myPosts')
 
 
+@login_required
+def schedulePost(request, post_id):
+    post = get_object_or_404(Post, id=post_id, user=request.user)
+    if request.method == 'POST':
+        form = PostForm(request.POST, instance=post)
+        if form.is_valid():
+            updated = form.save()
+            if updated.status == 'scheduled':
+                schedule_post(updated)  # uses Celery or custom scheduling
+            messages.success(request, "Post scheduled!")
+            return redirect('creatorDashboard')
+    else:
+        form = PostForm(instance=post)
+    return render(request, 'posts/schedule_post.html', {'form': form, 'post': post})
+
+
 
 ####################
 # POST APPROVAL    #
@@ -330,6 +348,9 @@ def approvePostAction(request, post_id):
     post = get_object_or_404(Post, id=post_id)
     post.status = 'approved'
     post.save()
+    # In approvePostAction:
+    send_notification(post.user, 'Post Approved', f'Your post "{post.content[:50]}" was approved.')
+
     return redirect('approvePosts')
 
 @login_required
@@ -475,3 +496,14 @@ def analyticsDashboard(request):
         'month_labels': months,
         'month_data': post_counts
     })
+
+
+
+#################
+##NOTIFICATIONS##
+#################
+def send_notification(user, subject, message):
+    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email])
+
+# In Celery task `publish_scheduled_post`:
+send_notification(post.user, 'Post Published', f'Your post "{post.content[:50]}" has just been published.')
