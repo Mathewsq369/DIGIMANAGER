@@ -61,7 +61,7 @@ class PlatformForm(forms.ModelForm):
         model = Platform
         fields = ['name', 'access_token', 'refresh_token', 'expires_in']
         widgets = {
-            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'name': forms.Select(attrs={'class': 'form-select'}),
             'access_token': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'refresh_token': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'expires_in': forms.NumberInput(attrs={'class': 'form-control'}),
