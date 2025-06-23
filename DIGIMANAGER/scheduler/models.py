@@ -26,8 +26,6 @@ class Post(models.Model):
     STATUS_CHOICES = [
         ('draft', 'Draft'),
         ('scheduled', 'Scheduled'),
-        ('approved', 'Approved'),
-        ('published', 'Published'),
     ]
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
