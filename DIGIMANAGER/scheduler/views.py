@@ -42,6 +42,13 @@ from django.core.mail import send_mail
 from collections import defaultdict
 
 
+import openpyxl
+from xhtml2pdf import pisa
+from django.template.loader import get_template
+
+import json
+from django_celery_beat.models import PeriodicTask, ClockedSchedule
+
 #######################
 # AI IMAGE GENERATION #
 #######################
@@ -275,29 +282,52 @@ def viewPost(request, post_id):
         return redirect('unauthorized')
     return render(request, 'posts/postDetail.html', {'post': post})
 
+
 @login_required
 def editPost(request, post_id):
     post = get_object_or_404(Post, pk=post_id)
 
+    # Ensure only the post creator can edit
     if request.user.id != post.user_id:
-        return redirect('unauthorized')  # You can customize this
+        return redirect('unauthorized')
 
     if request.method == 'POST':
         form = PostForm(request.POST, request.FILES, instance=post)
         if form.is_valid():
             updated_post = form.save(commit=False)
 
-            # Optional: Handle AI-generated image URL from hidden input
+            # Handle AI-generated image URL if provided
             ai_image_url = request.POST.get('ai_image_url')
             if ai_image_url:
-                updated_post.image = ai_image_url  # This works if image is a URL field or handle as needed
+                updated_post.image = ai_image_url  # Optional: convert to ImageField if needed
 
             updated_post.save()
 
+            # Schedule task if post is to be scheduled
             if updated_post.status == 'scheduled':
-                schedule_post(updated_post)
+                task_name = f"publish_post_{updated_post.id}"
 
+                # Remove any existing periodic task with the same name
+                PeriodicTask.objects.filter(name=task_name).delete()
+
+                # Create or reuse ClockedSchedule for the exact time
+                clocked_time = updated_post.scheduled_time
+                clocked, _ = ClockedSchedule.objects.get_or_create(clocked_time=clocked_time)
+
+                # Register new Celery periodic task
+                PeriodicTask.objects.create(
+                    name=task_name,
+                    task='scheduler.tasks.publish_post',  # Replace with your Celery task path
+                    clocked=clocked,
+                    one_off=True,
+                    args=json.dumps([updated_post.id]),
+                    start_time=clocked_time,
+                    enabled=True,
+                )
+
+            messages.success(request, "✅ Post updated successfully.")
             return redirect('viewPost', post_id=updated_post.pk)
+
     else:
         form = PostForm(instance=post)
 
@@ -325,13 +355,11 @@ def schedulePost(request, post_id):
             updated = form.save()
             if updated.status == 'scheduled':
                 schedule_post(updated)  # uses Celery or custom scheduling
-                
             messages.success(request, "Post scheduled!")
             return redirect('creatorDashboard')
     else:
         form = PostForm(instance=post)
-    return render(request, 'posts/schedulePost.html', {'form': form, 'post': post})
-
+    return render(request, 'posts/schedule_post.html', {'form': form, 'post': post})
 
 
 ####################
@@ -350,6 +378,14 @@ def approvePostAction(request, post_id):
     post = get_object_or_404(Post, id=post_id)
     post.status = 'approved'
     post.save()
+    # After approving:
+    if post.status == 'approved':
+        send_post_notification(
+            user_email=post.user.email,
+            subject="✅ Your post has been approved!",
+            message=f"Hi {post.user.username},\n\nYour post titled \"{post.content[:50]}...\" has been approved and scheduled for {post.scheduled_time}.\n\n- DigiManager Team"
+        )
+
     # In approvePostAction:
     send_notification(post.user, 'Post Approved', f'Your post "{post.content[:50]}" was approved.')
 
@@ -548,3 +584,34 @@ def analyticsDashboard(request):
 #################
 def send_notification(user, subject, message):
     send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email])
+
+
+# Excel Export
+@login_required
+def export_posts_excel(request):
+    if request.user.role != 'admin':
+        return redirect('unauthorized')
+
+    workbook = openpyxl.Workbook()
+    sheet = workbook.active
+    sheet.title = 'Posts'
+
+    headers = ['ID', 'User', 'Platform', 'Content', 'Status', 'Scheduled Time']
+    sheet.append(headers)
+
+    for post in Post.objects.all():
+        sheet.append([
+            post.id,
+            post.user.username,
+            post.platform.name,
+            post.content[:50],
+            post.status,
+            post.scheduled_time.strftime("%Y-%m-%d %H:%M"),
+        ])
+
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    )
+    response['Content-Disposition'] = 'attachment; filename=posts_export.xlsx'
+    workbook.save(response)
+    return response
