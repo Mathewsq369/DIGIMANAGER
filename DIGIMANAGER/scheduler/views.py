@@ -375,6 +375,30 @@ def approvePosts(request):
     pending_posts = Post.objects.filter(status='scheduled')
     return render(request, 'posts/approvePosts.html', {'pending_posts': pending_posts})
 
+
+@login_required
+def approvePost(request, post_id):
+    if request.user.role not in ['admin', 'manager']:
+        return redirect('unauthorized')
+
+    post = get_object_or_404(Post, id=post_id, status='scheduled')
+    post.status = 'approved'
+    post.save()
+    messages.success(request, f"Post by {post.user.username} has been approved.")
+    return redirect('approvePosts')
+
+
+@login_required
+def rejectPost(request, post_id):
+    if request.user.role not in ['admin', 'manager']:
+        return redirect('unauthorized')
+
+    post = get_object_or_404(Post, id=post_id, status='scheduled')
+    post.status = 'draft'
+    post.save()
+    messages.warning(request, f"Post by {post.user.username} has been sent back to draft.")
+    return redirect('approvePosts')
+
 @login_required
 def approvePostAction(request, post_id):
     post = get_object_or_404(Post, id=post_id)
