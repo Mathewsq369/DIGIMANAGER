@@ -22,9 +22,9 @@
         <td>{{ post.platform.name }}</td>
         <td>{{ post.scheduled_time|date:"M d, Y H:i" }}</td>
         <td>
-          <a href="{% url 'view_post' post.id %}" class="btn btn-sm btn-info">View</a>
-          <a href="{% url 'approve_post' post.id %}" class="btn btn-sm btn-success">Approve</a>
-          <a href="{% url 'reject_post' post.id %}" class="btn btn-sm btn-danger">Reject</a>
+          <a href="{% url 'viewPost' post.id %}" class="btn btn-sm btn-info">View</a>
+          <a href="{% url 'approvePost' post.id %}" class="btn btn-sm btn-success">Approve</a>
+          <a href="{% url 'rejectPost' post.id %}" class="btn btn-sm btn-danger">Reject</a>
         </td>
       </tr>
       {% empty %}

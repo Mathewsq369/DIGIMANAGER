@@ -31,7 +31,7 @@ urlpatterns = [
 
 
     # Approvals
-    path('posts/approve/', views.approvePosts, name='approvePosts'),
+    path('posts/approve/<int:post_id>/', views.approvePost, name='approvePost'),
     path('posts/approve/action/', views.approvePostAction, name='approvePostAction'),
     path('posts/reject/', views.rejectPostAction, name='rejectPostAction'),
 
@@ -46,4 +46,10 @@ urlpatterns = [
     path('manager-dashboard/', views.managerDashboard, name='managerDashboard'),
     path('analytics/', views.analyticsDashboard, name='analyticsDashboard'),
     path('unauthorized/', views.unauthorized, name='unauthorized'),
+
+
+    # Exports
+    path('export/excel/', views.exportPostsExcel, name='export_posts_excel'),
+    path('export/pdf/', views.exportPostsPdf, name='export_posts_pdf'),
+
 ]

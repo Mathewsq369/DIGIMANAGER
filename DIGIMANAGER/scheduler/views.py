@@ -49,6 +49,8 @@ from django.template.loader import get_template
 import json
 from django_celery_beat.models import PeriodicTask, ClockedSchedule
 
+import openpyxl
+
 #######################
 # AI IMAGE GENERATION #
 #######################
@@ -585,10 +587,12 @@ def analyticsDashboard(request):
 def send_notification(user, subject, message):
     send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email])
 
+################
+##Excel Export##
+################
 
-# Excel Export
 @login_required
-def export_posts_excel(request):
+def exportPostsExcel(request):
     if request.user.role != 'admin':
         return redirect('unauthorized')
 
@@ -615,3 +619,23 @@ def export_posts_excel(request):
     response['Content-Disposition'] = 'attachment; filename=posts_export.xlsx'
     workbook.save(response)
     return response
+
+
+@login_required
+def exportPostsPdf(request):
+    if request.user.role != 'admin':
+        return redirect('unauthorized')
+
+    posts = Post.objects.all()
+    template = get_template('exports/postsPdf.html')
+    html = template.render({'posts': posts})
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="posts_export.pdf"'
+    pisa_status = pisa.CreatePDF(html, dest=response)
+
+    if pisa_status.err:
+        return HttpResponse("PDF generation error", status=500)
+
+    return response
+
