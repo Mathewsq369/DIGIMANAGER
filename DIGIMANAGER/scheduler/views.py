@@ -369,11 +369,14 @@ def schedulePost(request, post_id):
 ####################
 
 @login_required
-def approvePosts(request):
+def approvePost(request, post_id):
     if request.user.role not in ['admin', 'manager']:
         return redirect('unauthorized')
-    pending_posts = Post.objects.filter(status='scheduled')
-    return render(request, 'posts/approvePosts.html', {'pending_posts': pending_posts})
+
+    post = get_object_or_404(Post, id=post_id)
+    post.status = 'approved'
+    post.save()
+    return redirect('approvePosts')
 
 @login_required
 def approvePostAction(request, post_id):
