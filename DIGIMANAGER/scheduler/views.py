@@ -218,7 +218,6 @@ def captionHistory(request):
 ###############
 # POSTS       #
 ###############
-
 @login_required
 def createPost(request):
     if request.user.role != 'creator':
@@ -230,7 +229,6 @@ def createPost(request):
     if request.method == 'POST':
         form = PostForm(request.POST, request.FILES)
 
-        # Hidden input used to pass the AI-generated image URL from the frontend
         ai_image_url = request.POST.get('ai_image_url')
 
         if form.is_valid():
@@ -238,7 +236,7 @@ def createPost(request):
             post.user = request.user
             post.status = request.POST.get('status', 'draft')
 
-            # No manual image uploaded, but an AI-generated one exists
+            # Handle AI-generated image if uploaded manually or via AI
             if not request.FILES.get('image') and ai_image_url:
                 try:
                     parsed_url = urlparse(ai_image_url)
@@ -258,10 +256,8 @@ def createPost(request):
 
             post.save()
 
-            # Handle scheduled posts
-            if post.status == 'scheduled' and post.scheduled_time:
-                eta = (post.scheduled_time - timezone.now()).total_seconds()
-                publishPost.apply_async((post.id,), countdown=eta)
+            #  Removed publishPost.apply_async()
+            # Post will now go to scheduled → manager approves → published
 
             messages.success(request, "Post saved successfully.")
             return redirect('creatorDashboard')
