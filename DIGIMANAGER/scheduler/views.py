@@ -504,7 +504,7 @@ def managerDashboard(request):
 def creatorDashboard(request):
     if request.user.role != 'creator':
         return redirect('unauthorized')
-    my_posts = Post.objects.filter(user=request.user)
+    my_posts = Post.objects.filter(user=request.user).order_by('-created_at')[:3]
     platforms = Platform.objects.all()
     return render(request, 'dashboards/creatorDashboard.html', {
         'posts': my_posts,
