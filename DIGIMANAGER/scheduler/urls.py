@@ -31,7 +31,7 @@ urlpatterns = [
 
 
     # Approvals
-    path('posts/approve/<int:post_id>/', views.approvePost, name='approvePost'),
+    path('posts/approve/<int:post_id>/', views.approvePosts, name='approvePost'),
     path('posts/approve/action/', views.approvePostAction, name='approvePostAction'),
     path('posts/reject/', views.rejectPostAction, name='rejectPostAction'),
 
